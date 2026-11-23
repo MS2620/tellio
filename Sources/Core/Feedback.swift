@@ -35,9 +35,18 @@ enum FeedbackService {
 
     static var isAvailable: Bool { baseURL != nil }
 
-    /// "tvOS 26.1 · Apple TV 4K · Tellio build 54". Nothing about accounts or what's watched.
+    /// "tvOS 26.1 · Apple TV 4K · Tellio build 54", or "iOS 26.1 · iPhone (iPhone17,1) · …" from the
+    /// iPhone and iPad app. Nothing about accounts or what's watched.
     static var deviceDetails: String {
-        "tvOS \(UIDevice.current.systemVersion) · \(modelName) · Tellio build \(UpdateChecker.currentBuild)"
+        "\(systemName) \(UIDevice.current.systemVersion) · \(modelName) · Tellio build \(UpdateChecker.currentBuild)"
+    }
+
+    private static var systemName: String {
+        #if os(tvOS)
+        return "tvOS"
+        #else
+        return UIDevice.current.userInterfaceIdiom == .pad ? "iPadOS" : "iOS"
+        #endif
     }
 
     static func send(kind: Kind, message: String, contact: String, includeDevice: Bool) async throws -> Sent {
@@ -76,6 +85,10 @@ enum FeedbackService {
         let id = withUnsafeBytes(of: &info.machine) { raw in
             String(decoding: raw.prefix { $0 != 0 }, as: UTF8.self)
         }
+        #if !os(tvOS)
+        // "iPhone (iPhone17,1)": the identifier pins down the exact model without a lookup table.
+        return "\(UIDevice.current.model) (\(id))"
+        #else
         switch id {
         case "AppleTV5,3": return "Apple TV HD"
         case "AppleTV6,2": return "Apple TV 4K"
@@ -83,5 +96,6 @@ enum FeedbackService {
         case "AppleTV14,1": return "Apple TV 4K (3rd gen)"
         default: return id.hasPrefix("AppleTV") ? "Apple TV (\(id))" : "Apple TV"
         }
+        #endif
     }
 }
