@@ -69,7 +69,10 @@ final class ReminderStore: ObservableObject {
     }
 
     func remove(_ reminder: ProgrammeReminder) {
-        allReminders.removeAll { $0.id == reminder.id && $0.accountID == reminder.accountID }
+        // The guide passes a reminder without its account (add() fills that in when storing it),
+        // so a missing account means the one in use.
+        let account = reminder.accountID ?? Self.activeAccountID
+        allReminders.removeAll { $0.id == reminder.id && ($0.accountID == account || $0.accountID == nil) }
         save()
     }
 
