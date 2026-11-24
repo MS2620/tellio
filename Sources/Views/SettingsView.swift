@@ -342,7 +342,11 @@ struct LiveTVSettingsView: View {
     var body: some View {
         SettingsPage("Live TV & Guide") {
             RemindersPanel()
-            SettingsNote("Select a programme that hasn't started in the guide to be reminded when it begins. Reminders appear while Tellio is open, including over the player; tvOS doesn't let apps notify you when they're closed.")
+            GlassPanel {
+                SettingsOptionRow("Remind me", icon: "bell", selection: $settings.prefs.reminderLeadMinutes,
+                                  options: ReminderLead.options)
+            }
+            SettingsNote("Select a programme that hasn't started in the guide, or Remind me on a match, to be reminded before it begins. Reminders appear while Tellio is open, including over the player; tvOS doesn't let apps notify you when they're closed.")
 
             GlassPanel("Layout") {
                 SettingsOptionRow("Default view", icon: "square.grid.2x2", selection: $settings.prefs.liveLayout,
@@ -1004,8 +1008,9 @@ struct SportsSettingsView: View {
                 SettingsLinkRow("My teams", icon: "star", value: "\(settings.prefs.favouriteTeams.count)") {
                     TeamsManagerView()
                 }
+                SettingsToggleRow("Remind me about my teams' matches", icon: "bell", isOn: $settings.prefs.remindTeamMatches)
             }
-            SettingsNote("Fixtures cover every competition a team plays in, not just the league you picked it from.")
+            SettingsNote("Fixtures cover every competition a team plays in, not just the league you picked it from. Match reminders go off as set in Live TV & Guide › Remind me.")
         }
     }
 }

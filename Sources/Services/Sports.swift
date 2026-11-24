@@ -111,6 +111,48 @@ struct Fixture: Identifiable, Hashable {
     }
 }
 
+/// Saved with match reminders (and their backups). Read leniently: fields added later
+/// fall back to their defaults, so older saves still load. The score isn't saved.
+extension Fixture: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, date, competition, title, home, away, subtitle, broadcasts, sessions, keywords,
+             followed, eventID, scoreboardPath, endDate
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        date = try c.decode(Date.self, forKey: .date)
+        competition = (try? c.decodeIfPresent(String.self, forKey: .competition)) ?? ""
+        title = try c.decode(String.self, forKey: .title)
+        home = try? c.decodeIfPresent(Side.self, forKey: .home)
+        away = try? c.decodeIfPresent(Side.self, forKey: .away)
+        subtitle = try? c.decodeIfPresent(String.self, forKey: .subtitle)
+        broadcasts = (try? c.decodeIfPresent([String].self, forKey: .broadcasts)) ?? []
+        sessions = (try? c.decodeIfPresent([Session].self, forKey: .sessions)) ?? []
+        keywords = (try? c.decodeIfPresent([String].self, forKey: .keywords)) ?? []
+        followed = (try? c.decodeIfPresent([String].self, forKey: .followed)) ?? []
+        eventID = try? c.decodeIfPresent(String.self, forKey: .eventID)
+        scoreboardPath = try? c.decodeIfPresent(String.self, forKey: .scoreboardPath)
+        endDate = try? c.decodeIfPresent(Date.self, forKey: .endDate)
+    }
+}
+
+extension Fixture.Side: Codable {
+    private enum CodingKeys: String, CodingKey { case id, name, logo, color, aliases }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        logo = try? c.decodeIfPresent(String.self, forKey: .logo)
+        color = try? c.decodeIfPresent(String.self, forKey: .color)
+        aliases = (try? c.decodeIfPresent([String].self, forKey: .aliases)) ?? []
+    }
+}
+
+extension Fixture.Session: Codable {}
+
 /// A game's score and clock as ESPN reports it.
 struct FixtureScore: Hashable {
     enum Phase: Hashable { case live, halfTime, finished }
@@ -684,6 +726,7 @@ enum SportsLoader {
         }
         let sorted = merged.values.sorted { $0.date != $1.date ? $0.date < $1.date : $0.id < $1.id }
         await LiveScores.shared.track(sorted)
+        await ReminderStore.shared.fixturesLoaded(sorted, teams: followedNames)
         return sorted
     }
 }

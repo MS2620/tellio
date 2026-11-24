@@ -119,6 +119,13 @@ final class AppSettings: ObservableObject {
             prefs.save()
             QualitySort.activeCategoryIDs = prefs.qualitySortCategoryIDs
             QualitySort.activeCustomNames = prefs.channelNames
+            ReminderStore.leadMinutes = prefs.reminderLeadMinutes
+            ReminderStore.remindTeamMatches = prefs.remindTeamMatches
+            if prefs.remindTeamMatches != oldValue.remindTeamMatches
+                || prefs.favouriteTeams != oldValue.favouriteTeams {
+                let teams = Set(prefs.favouriteTeams.map(\.name))
+                Task { @MainActor in ReminderStore.shared.teamMatchesSettingChanged(teams: teams) }
+            }
             if prefs.epgRefreshHours != oldValue.epgRefreshHours {
                 let hours = prefs.epgRefreshHours
                 Task {
@@ -154,6 +161,8 @@ final class AppSettings: ObservableObject {
         addons = Keychain.codable([AddonEntry].self, for: "addons") ?? []
         let freshInstall = !Preferences.hasSaved
         prefs = Preferences.load()
+        ReminderStore.leadMinutes = prefs.reminderLeadMinutes
+        ReminderStore.remindTeamMatches = prefs.remindTeamMatches
         QualitySort.activeCategoryIDs = prefs.qualitySortCategoryIDs
         QualitySort.activeCustomNames = prefs.channelNames
         // Anyone who already set Tellio up (before the setup screens existed) skips them.

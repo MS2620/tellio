@@ -16,6 +16,8 @@ struct BackupPayload: Codable {
     var parentalPIN: String?
     /// Every IPTV account (backups from before multiple accounts only have `xtream`).
     var xtreamAccounts: [XtreamAccount]? = nil
+    /// Match and race reminders (backups from before them don't have any).
+    var matchReminders: [MatchReminder]? = nil
 }
 
 enum BackupError: LocalizedError {
@@ -89,7 +91,8 @@ final class BackupService: ObservableObject {
             reminders: ReminderStore.shared.allReminders,
             trakt: TraktSync.shared.hasApp ? TraktSync.shared.backup : nil,
             parentalPIN: ParentalLock.shared.storedPIN,
-            xtreamAccounts: settings.xtreamAccounts
+            xtreamAccounts: settings.xtreamAccounts,
+            matchReminders: ReminderStore.shared.matches
         )
         let code = String((0..<8).map { _ in Self.alphabet.randomElement()! })
         let sealed = try AES.GCM.seal(try JSONEncoder().encode(payload), using: key(code: code))
@@ -138,6 +141,7 @@ final class BackupService: ObservableObject {
         }
         WatchHistory.shared.restore(payload.watchHistory)
         ReminderStore.shared.restore(payload.reminders)
+        if let matches = payload.matchReminders { ReminderStore.shared.restoreMatches(matches) }
         if let trakt = payload.trakt { TraktSync.shared.restore(trakt) }
         ParentalLock.shared.setPIN(payload.parentalPIN)
     }

@@ -406,6 +406,7 @@ struct FixtureDetailView: View {
     @State private var playback: PlaybackRequest?
     @State private var showingSportsChannels = false
     @ObservedObject private var liveScores = LiveScores.shared
+    @ObservedObject private var reminders = ReminderStore.shared
     @State private var addonHits: [AddonSportsHit] = []
     @State private var addonSearching = false
     /// Whether any addon lists something other than movies and series; otherwise the panel stays hidden.
@@ -468,6 +469,18 @@ struct FixtureDetailView: View {
                             .foregroundStyle(.white.opacity(0.85))
                         Text(dateLine)
                             .font(.system(size: 24, weight: .bold))
+                        if fixture.date > Date() {
+                            Button {
+                                reminders.toggle(fixture: fixture)
+                            } label: {
+                                CardButtonLabel(title: reminders.isSet(fixture: fixture)
+                                                    ? String(localized: "Cancel reminder") : String(localized: "Remind me"),
+                                                icon: reminders.isSet(fixture: fixture) ? "bell.slash" : "bell", compact: true)
+                            }
+                            .buttonStyle(PlainPressStyle())
+                            .frame(width: 340)
+                            .padding(.top, 8)
+                        }
                     }
                 }
 

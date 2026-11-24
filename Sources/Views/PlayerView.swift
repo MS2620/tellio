@@ -219,9 +219,13 @@ private struct AetherPlaybackView: View {
                 panelView(panel).transition(.move(edge: .trailing))
             }
 
-            ReminderBanner { reminder in
+            ReminderBanner(onWatch: { reminder in
                 watchReminder(reminder)
-            }
+            }, onMatch: { reminder in
+                // Its page lists where to watch; the root view opens it once the player has closed.
+                ReminderStore.shared.open(reminder)
+                dismiss()
+            })
 
             if let toast {
                 VStack {
