@@ -1,0 +1,40 @@
+{
+  "name": "Tellio for Apple TV",
+  "identifier": "io.github.ms2620.tellio",
+  "subtitle": "A free player for your own addons and IPTV account.",
+  "website": "https://github.com/MS2620/tellio",
+  "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/master/Resources/AppIcon.png",
+  "tintColor": "6E5BFF",
+  "apps": [
+    {
+      "name": "Tellio",
+      "bundleIdentifier": "com.mauro.tellio",
+      "developerName": "MS2620",
+      "subtitle": "A free player for your own addons and IPTV account.",
+      "localizedDescription": "Tellio plays what you bring: your IPTV provider's login or M3U playlist for live TV, and your addons for films and series. On top of that it adds artwork, a proper TV guide, sports with live scores, Top Shelf, Trakt sync and more.\n\nTellio doesn't include any channels, films or streams. It only plays what your own IPTV account and addons provide.",
+      "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/master/Resources/AppIcon.png",
+      "tintColor": "6E5BFF",
+      "category": "entertainment",
+      "screenshots": [],
+      "versions": [
+        {
+          "version": "0.1.81",
+          "buildVersion": "81",
+          "date": "2026-11-24T14:05:56Z",
+          "localizedDescription": "Merge pull request #4 from MS2620/altstore-source\n\nPublish an AltStore source for Apple TV sideloaders\n\n---\nThird-party components in this build:\n- https://github.com/superuser404notfound/AetherEngine @ 7.67.1\n- https://github.com/superuser404notfound/FFmpegBuild @ 3.15.0\n- https://github.com/superuser404notfound/LibDovi @ 2.2.0\n- https://github.com/getsentry/sentry-cocoa @ 9.34.0\n- https://github.com/kishikawakatsumi/SMBClient @ 0.3.1",
+          "downloadURL": "https://github.com/MS2620/tellio/releases/download/build-81/Tellio.ipa",
+          "size": 16992566,
+          "sha256": "2e4c6cb2a612a97eeb9626388298def2b3f439bd0ea1ad70fede0ca716249c8c",
+          "minOSVersion": "18.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [
+          "com.apple.security.application-groups"
+        ],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": []
+}
