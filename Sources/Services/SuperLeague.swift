@@ -9,13 +9,36 @@ struct SuperLeagueClient {
     static let leagueID = "4415"
     static let league = SportLeague(sport: sport, slug: leagueID, name: "Super League")
 
+    /// This season's clubs. The free key lists only the first 10 of a league's teams, A–Z,
+    /// so any it leaves out are looked up one by one by name.
+    static let clubs = [
+        "Bradford Bulls", "Castleford Tigers", "Catalans Dragons", "Huddersfield Giants", "Hull FC",
+        "Hull Kingston Rovers", "Leeds Rhinos", "Leigh Leopards", "St Helens", "Toulouse Olympique",
+        "Wakefield Trinity", "Warrington Wolves", "Wigan Warriors", "York Knights",
+    ]
+
     func teams() async throws -> [ESPNTeam] {
         let response: TeamsResponse = try await SportsDBCache.shared.get(
             "search_all_teams.php?l=English_Rugby_League_Super_League", maxAge: 7 * 86_400)
-        return (response.teams ?? [])
+        var found = (response.teams ?? []).filter { $0.idLeague == nil || $0.idLeague == Self.leagueID }
+        let listed = Set(found.map { Self.simplified($0.strTeam) })
+        for club in Self.clubs where !listed.contains(Self.simplified(club)) {
+            let query = club.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? club
+            let result: TeamsResponse? = try? await SportsDBCache.shared.get("searchteams.php?t=\(query)", maxAge: 7 * 86_400)
+            // Same-named clubs in other sports (Wakefield, Bradford…) are skipped.
+            if let team = result?.teams?.first(where: { $0.idLeague == Self.leagueID }) { found.append(team) }
+        }
+        var seen = Set<String>()
+        return found
+            .filter { seen.insert($0.idTeam).inserted }
             .map { ESPNTeam(id: $0.idTeam, displayName: $0.strTeam, shortDisplayName: $0.strTeamShort,
                             logoURL: $0.strBadge, color: $0.strColour1?.replacingOccurrences(of: "#", with: "")) }
             .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+    }
+
+    /// "Hull F.C." and "Hull FC" are the same club.
+    private static func simplified(_ name: String) -> String {
+        name.lowercased().filter { $0.isLetter || $0.isNumber }
     }
 
     /// Followed Super League teams' games in the next `days`.
@@ -132,6 +155,7 @@ private struct TeamsResponse: Decodable {
         let strTeamShort: String?
         let strBadge: String?
         let strColour1: String?
+        let idLeague: String?
     }
     let teams: [Team]?
 }
