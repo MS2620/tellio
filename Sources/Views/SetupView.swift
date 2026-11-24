@@ -234,7 +234,7 @@ private struct SetupLiveStep<Progress: View>: View {
         SetupStepLayout(progress: progress(0), icon: "tv",
                         title: String(localized: "Add your IPTV account"),
                         text: String(localized: "For Live TV, the guide and finding matches on your channels. Use the Xtream Codes details from your provider."),
-                        hint: String(localized: "No IPTV? Skip this. Films and series still work, and you can add it later in Settings › Connections.")) {
+                        hint: String(localized: "No IPTV, or an M3U playlist instead of a login? Skip this. Films and series still work, and you can add either later in Settings › Connections.")) {
             GlassPanel {
                 TypingRow(title: String(localized: "Name"), subtitle: String(localized: "So you can tell your IPTV accounts apart"), icon: "textformat",
                           value: account.name.isEmpty ? String(localized: "e.g. Home IPTV") : account.name,

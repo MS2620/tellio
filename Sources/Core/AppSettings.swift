@@ -9,12 +9,24 @@ struct XtreamAccount: Codable, Hashable, Identifiable {
     var password = ""
     /// The user's own label for the account; empty shows the server name.
     var name = ""
+    /// Set for an M3U playlist account, which has no server, username or password.
+    var playlistURL = ""
+    /// The playlist's XMLTV guide, when it isn't named in the playlist itself.
+    var guideURL = ""
 
-    var isConfigured: Bool { !server.isEmpty && !username.isEmpty && !password.isEmpty }
+    var isM3U: Bool { !playlistURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 
-    /// The server without "http://", port or path, e.g. "vpn.example.com".
+    var isConfigured: Bool { isM3U || (!server.isEmpty && !username.isEmpty && !password.isEmpty) }
+
+    /// The server (or playlist site) without "http://", port or path, e.g. "vpn.example.com".
     var host: String {
-        URL(string: normalizedServer)?.host ?? server
+        if isM3U { return URL(string: playlistURL.trimmingCharacters(in: .whitespaces))?.host ?? playlistURL }
+        return URL(string: normalizedServer)?.host ?? server
+    }
+
+    /// Identifies the account's downloads (channel lists, guide files) across launches.
+    var cacheKey: String {
+        isM3U ? "m3u|" + playlistURL : normalizedServer + "|" + username
     }
 
     var displayName: String {
@@ -32,7 +44,7 @@ struct XtreamAccount: Codable, Hashable, Identifiable {
 
 extension XtreamAccount {
     private enum CodingKeys: String, CodingKey {
-        case id, server, username, password, name
+        case id, server, username, password, name, playlistURL, guideURL
     }
 
     /// Accounts saved by older versions have no name; every field is optional.
@@ -45,6 +57,8 @@ extension XtreamAccount {
         username = (try? c.decodeIfPresent(String.self, forKey: .username)) ?? ""
         password = (try? c.decodeIfPresent(String.self, forKey: .password)) ?? ""
         name = (try? c.decodeIfPresent(String.self, forKey: .name)) ?? ""
+        playlistURL = (try? c.decodeIfPresent(String.self, forKey: .playlistURL)) ?? ""
+        guideURL = (try? c.decodeIfPresent(String.self, forKey: .guideURL)) ?? ""
     }
 }
 
@@ -110,6 +124,7 @@ final class AppSettings: ObservableObject {
                 Task {
                     await XtreamCache.shared.configure(refreshHours: hours)
                     await SportsGuide.shared.configure(refreshHours: hours)
+                    await M3UGuide.shared.configure(refreshHours: hours)
                 }
             }
         }
@@ -153,6 +168,7 @@ final class AppSettings: ObservableObject {
         Task {
             await XtreamCache.shared.configure(refreshHours: hours)
             await SportsGuide.shared.configure(refreshHours: hours)
+            await M3UGuide.shared.configure(refreshHours: hours)
         }
     }
 

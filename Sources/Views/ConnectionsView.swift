@@ -358,9 +358,12 @@ struct IPTVAccountView: View {
     @State private var createdID: String?
 
     private enum Field: String, Identifiable {
-        case name, server, username, password
+        case name, server, username, password, playlist, guide
         var id: String { rawValue }
     }
+
+    /// Xtream Codes login, or an M3U playlist link.
+    @State private var isPlaylist = false
 
     @State private var state: ConnectionState = .checking(String(localized: "Checking…"))
     @State private var info: XtreamAccountInfo?
@@ -428,17 +431,32 @@ struct IPTVAccountView: View {
                     HStack(alignment: .top, spacing: 40) {
                         VStack(spacing: 18) {
                             GlassPanel("Login") {
+                                SettingsOptionRow("Type", icon: "list.bullet", selection: $isPlaylist,
+                                                  options: [(false, "Xtream Codes"), (true, String(localized: "M3U playlist"))])
                                 fieldRow(.name, title: String(localized: "Name"), icon: "textformat",
                                          value: account.name.isEmpty ? String(localized: "Optional") : account.name)
-                                fieldRow(.server, title: String(localized: "Server"), icon: "globe",
-                                         value: account.server.isEmpty ? String(localized: "Not set") : account.host)
-                                fieldRow(.username, title: String(localized: "Username"), icon: "person",
-                                         value: account.username.isEmpty ? String(localized: "Not set") : account.username)
-                                fieldRow(.password, title: String(localized: "Password"), icon: "lock",
-                                         value: account.password.isEmpty ? String(localized: "Not set") : "••••••••")
+                                if isPlaylist {
+                                    fieldRow(.playlist, title: String(localized: "Playlist address"), icon: "list.bullet.rectangle",
+                                             value: account.playlistURL.isEmpty ? String(localized: "Not set") : account.host)
+                                    fieldRow(.guide, title: String(localized: "Guide address"), icon: "calendar",
+                                             value: account.guideURL.isEmpty ? String(localized: "From the playlist")
+                                                 : (URL(string: account.guideURL)?.host ?? account.guideURL))
+                                } else {
+                                    fieldRow(.server, title: String(localized: "Server"), icon: "globe",
+                                             value: account.server.isEmpty ? String(localized: "Not set") : account.host)
+                                    fieldRow(.username, title: String(localized: "Username"), icon: "person",
+                                             value: account.username.isEmpty ? String(localized: "Not set") : account.username)
+                                    fieldRow(.password, title: String(localized: "Password"), icon: "lock",
+                                             value: account.password.isEmpty ? String(localized: "Not set") : "••••••••")
+                                }
                             }
-                            SettingsNote("Select a field to type in it. The name is only for you; without one the server is shown.")
-                                .padding(.top, 14)
+                            if isPlaylist {
+                                SettingsNote("Use the playlist link from your provider; it usually ends in .m3u or .m3u8. The guide comes from the link inside the playlist, so only enter one if your provider gives it separately. Live channels are read; films and series in the playlist are left out.")
+                                    .padding(.top, 14)
+                            } else {
+                                SettingsNote("Select a field to type in it. The name is only for you; without one the server is shown.")
+                                    .padding(.top, 14)
+                            }
                         }
 
                         VStack(spacing: 34) {
@@ -487,6 +505,16 @@ struct IPTVAccountView: View {
             }
         }
         .task(id: account) { await check(announce: false) }
+        .onAppear { isPlaylist = account.isM3U }
+        .onChange(of: isPlaylist) { _, playlist in
+            // Back to a login: the playlist links go, so the account reads as Xtream again.
+            if !playlist && account.isM3U {
+                update {
+                    $0.playlistURL = ""
+                    $0.guideURL = ""
+                }
+            }
+        }
         .confirmationDialog("Remove this IPTV account?", isPresented: $confirmingRemove, titleVisibility: .visible) {
             Button("Remove account", role: .destructive) {
                 let wasInUse = isInUse
@@ -510,13 +538,15 @@ struct IPTVAccountView: View {
     private func fieldRow(_ field: Field, title: String, icon: String, value: String) -> some View {
         TypingRow(title: title, icon: icon, value: value, initial: initial(field),
                   secure: field == .password, autocapitalize: field == .name,
-                  allowsEmpty: field == .name) { value in
+                  allowsEmpty: field == .name || field == .guide) { value in
             update {
                 switch field {
                 case .name: $0.name = value
                 case .server: $0.server = value
                 case .username: $0.username = value
                 case .password: $0.password = value
+                case .playlist: $0.playlistURL = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                case .guide: $0.guideURL = value.trimmingCharacters(in: .whitespacesAndNewlines)
                 }
             }
         }
@@ -528,6 +558,8 @@ struct IPTVAccountView: View {
         case .server: return account.server
         case .username: return account.username
         case .password: return account.password
+        case .playlist: return account.playlistURL
+        case .guide: return account.guideURL
         }
     }
 

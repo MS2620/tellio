@@ -398,7 +398,7 @@ actor SportsGuide {
 
     /// - Parameter force: download the guide again even if the saved copy is fresh.
     func index(_ client: XtreamClient, keywords: KeywordSet, force: Bool = false) async throws -> GuideIndex {
-        let account = client.account.normalizedServer + "|" + client.account.username
+        let account = client.account.cacheKey
         guard let file = Self.file(for: account) else { throw URLError(.cannotCreateFile) }
 
         var saved = Self.modified(file)
@@ -429,18 +429,10 @@ actor SportsGuide {
     }
 
     private func download(_ client: XtreamClient, to file: URL) async throws {
-        guard let url = client.xmltvURL else { throw URLError(.badURL) }
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 90
-        for (key, value) in client.requestHeaders { request.setValue(value, forHTTPHeaderField: key) }
-        let (temporary, response) = try await URLSession.shared.download(for: request)
-        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-            try? FileManager.default.removeItem(at: temporary)
-            throw HTTPError.status(http.statusCode, "")
-        }
-        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? FileManager.default.removeItem(at: file)
-        try FileManager.default.moveItem(at: temporary, to: file)
+        var link = client.xmltvURL
+        if client.account.isM3U { link = await client.m3uGuideURL() }
+        guard let url = link else { throw URLError(.badURL) }
+        try await GuideDownload.fetch(url, headers: client.requestHeaders, to: file)
     }
 }
 
@@ -536,6 +528,47 @@ enum XMLTVReader {
         guard collector.listings > 0 else { throw GuideError.empty }
         return GuideIndex(programmes: collector.programmes, coverageEnd: collector.latestEnd,
                           totalListings: collector.listings)
+    }
+
+    /// Every listing from 6 hours ago to a week ahead, by lower-cased channel id (for M3U accounts' guide).
+    static func readAll(_ file: URL) throws -> [String: [XtreamEPGEntry]] {
+        let handle = try FileHandle(forReadingFrom: file)
+        defer { try? handle.close() }
+        let windowStart = Date().addingTimeInterval(-6 * 3600)
+        let windowEnd = Date().addingTimeInterval(7 * 86_400)
+        var result: [String: [XtreamEPGEntry]] = [:]
+        var buffer = Data()
+        var reachedEnd = false
+
+        while true {
+            var searchFrom = buffer.startIndex
+            while let start = buffer.range(of: open, in: searchFrom..<buffer.endIndex),
+                  let end = buffer.range(of: close, in: start.upperBound..<buffer.endIndex) {
+                let block = String(decoding: buffer[start.upperBound..<end.lowerBound], as: UTF8.self)
+                searchFrom = end.upperBound
+                guard let tagEnd = block.firstIndex(of: ">") else { continue }
+                let attributes = block[..<tagEnd]
+                let channel = Collector.attribute("channel", in: attributes).trimmingCharacters(in: .whitespaces).lowercased()
+                guard !channel.isEmpty,
+                      let stop = XMLTVDate.parse(Collector.attribute("stop", in: attributes)), stop > windowStart,
+                      let begin = XMLTVDate.parse(Collector.attribute("start", in: attributes)), begin < windowEnd
+                else { continue }
+                let body = block[block.index(after: tagEnd)...]
+                result[channel, default: []].append(XtreamEPGEntry(
+                    title: Collector.element("title", in: body),
+                    description: String(Collector.element("desc", in: body).prefix(600)),
+                    start: begin, end: stop))
+            }
+            if let start = buffer.range(of: open, in: searchFrom..<buffer.endIndex) {
+                buffer = Data(buffer[start.lowerBound...])
+            } else {
+                buffer = Data(buffer.suffix(open.count))
+            }
+            if reachedEnd { break }
+            let chunk = try handle.read(upToCount: 4 << 20) ?? Data()
+            if chunk.isEmpty { reachedEnd = true } else { buffer.append(chunk) }
+        }
+        return result.mapValues { $0.sorted { ($0.start ?? .distantPast) < ($1.start ?? .distantPast) } }
     }
 
     private struct Collector {
