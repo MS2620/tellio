@@ -20501,6 +20501,40 @@
         }
       }
     },
+    "Same as Apple TV" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Igual que el Apple TV"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie auf dem Apple TV"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comme sur l’Apple TV"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Igual à Apple TV"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jak na Apple TV"
+          }
+        }
+      }
+    },
     "Save" : {
       "localizations" : {
         "es" : {
@@ -24259,6 +24293,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tellio, wersja %lld"
+          }
+        }
+      }
+    },
+    "Tellio changes language the next time it opens. To close it now, press the TV button twice and swipe Tellio up." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tellio cambiará de idioma la próxima vez que se abra. Para cerrarlo ahora, pulsa dos veces el botón TV y desliza Tellio hacia arriba."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tellio wechselt die Sprache beim nächsten Öffnen. Um es jetzt zu schließen, drücke zweimal die TV-Taste und wische Tellio nach oben."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tellio changera de langue à sa prochaine ouverture. Pour le fermer maintenant, appuyez deux fois sur le bouton TV et balayez Tellio vers le haut."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Tellio muda de idioma da próxima vez que abrir. Para o fechar agora, prima duas vezes o botão TV e deslize o Tellio para cima."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tellio zmieni język przy następnym uruchomieniu. Aby zamknąć je teraz, naciśnij dwukrotnie przycisk TV i przesuń Tellio w górę."
           }
         }
       }

@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
     @ObservedObject private var updates = UpdateChecker.shared
     @State private var showingNotes = false
+    @State private var language = AppLanguage.chosen
 
     var body: some View {
         NavigationStack {
@@ -22,6 +23,8 @@ struct SettingsView: View {
                 }
 
                 GlassPanel("Personalise") {
+                    SettingsOptionRow("Language", icon: "globe", selection: $language, options: AppLanguage.options)
+                        .onChange(of: language) { _, value in AppLanguage.chosen = value }
                     SettingsLinkRow("Home screen", icon: "house") { HomeScreenSettingsView() }
                     SettingsLinkRow("Appearance", icon: "paintbrush",
                                     value: settings.prefs.backgroundStyle.label) { AppearanceSettingsView() }
@@ -29,6 +32,9 @@ struct SettingsView: View {
                     SettingsLinkRow("Calendar", icon: "calendar") { CalendarSettingsView() }
                     SettingsLinkRow("Parental controls", icon: "lock",
                                     value: settings.prefs.parentalControlsOn ? String(localized: "On") : String(localized: "Off")) { ParentalControlsView() }
+                }
+                if language != AppLanguage.atLaunch {
+                    SettingsNote("Tellio changes language the next time it opens. To close it now, press the TV button twice and swipe Tellio up.")
                 }
 
                 GlassPanel("Backup") {

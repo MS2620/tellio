@@ -402,3 +402,37 @@ enum DayFormat {
         date.formatted(date: .omitted, time: .shortened)
     }
 }
+
+/// The language Tellio's own text is in. tvOS has no per-app language setting, so this sets
+/// Tellio's preferred languages itself; the system reads them as Tellio opens, so a change
+/// shows the next time it opens. The Top Shelf follows the Apple TV's language.
+enum AppLanguage {
+    /// The languages Tellio is translated into, as in CFBundleLocalizations.
+    static let supported = ["en", "es", "de", "fr", "pt-PT", "pl"]
+    private static let key = "appLanguage"
+
+    /// A code from `supported`, or "" to follow the Apple TV.
+    static var chosen: String {
+        get { UserDefaults.standard.string(forKey: key) ?? "" }
+        set {
+            UserDefaults.standard.set(newValue, forKey: key)
+            if newValue.isEmpty {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.set([newValue], forKey: "AppleLanguages")
+            }
+        }
+    }
+
+    /// What `chosen` was when Tellio opened, which is what's on screen now.
+    static let atLaunch = chosen
+
+    /// Each language named in itself ("Español", "Deutsch"), so it can be found whatever is showing.
+    static var options: [(String, String)] {
+        [("", String(localized: "Same as Apple TV"))] + supported.map { code in
+            let locale = Locale(identifier: code)
+            let name = locale.localizedString(forIdentifier: code) ?? code
+            return (code, name.prefix(1).uppercased(with: locale) + name.dropFirst())
+        }
+    }
+}
