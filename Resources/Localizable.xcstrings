@@ -205,6 +205,40 @@
         }
       }
     },
+    "%@ · %lld today" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld hoy"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld heute"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld aujourd’hui"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld hoje"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · dziś: %2$lld"
+          }
+        }
+      }
+    },
     "%@ · interlaced" : {
       "localizations" : {
         "es" : {
@@ -7062,6 +7096,74 @@
         }
       }
     },
+    "Competitions" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Competiciones"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wettbewerbe"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compétitions"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Competições"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozgrywki"
+          }
+        }
+      }
+    },
+    "Competitions · %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Competiciones · %lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wettbewerbe · %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compétitions · %lld"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Competições · %lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozgrywki · %lld"
+          }
+        }
+      }
+    },
     "Connected · %lld channels" : {
       "localizations" : {
         "en" : {
@@ -9940,6 +10042,40 @@
         }
       }
     },
+    "Follow competition" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir competición"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wettbewerb folgen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suivre la compétition"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguir competição"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obserwuj rozgrywki"
+          }
+        }
+      }
+    },
     "Follow your teams" : {
       "localizations" : {
         "es" : {
@@ -10038,6 +10174,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Obserwowanie dowolnego zespołu pokazuje każdy weekend wyścigowy w Sporcie."
+          }
+        }
+      }
+    },
+    "Following competition" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiendo la competición"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wettbewerb gefolgt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compétition suivie"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A seguir a competição"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obserwujesz rozgrywki"
           }
         }
       }
@@ -10820,6 +10990,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Koniec meczu"
+          }
+        }
+      }
+    },
+    "Games today in Sports · select to stop following" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partidos de hoy en Deportes · selecciona para dejar de seguir"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heutige Spiele unter Sport · auswählen, um nicht mehr zu folgen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matchs du jour dans Sports · sélectionnez pour ne plus suivre"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jogos de hoje em Desporto · selecione para deixar de seguir"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dzisiejsze mecze w Sporcie · wybierz, aby przestać obserwować"
           }
         }
       }
@@ -15783,6 +15987,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "No games today in your competitions." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy no hay partidos en tus competiciones."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute keine Spiele in deinen Wettbewerben."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun match aujourd’hui dans vos compétitions."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoje não há jogos nas suas competições."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dziś brak meczów w Twoich rozgrywkach."
           }
         }
       }
@@ -22903,6 +23141,40 @@
         }
       }
     },
+    "Shows its games today in Sports, without following every team." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra sus partidos de hoy en Deportes, sin seguir a todos los equipos."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeigt die heutigen Spiele unter Sport, ohne jedem Team zu folgen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affiche ses matchs du jour dans Sports, sans suivre chaque équipe."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra os jogos de hoje em Desporto, sem seguir todas as equipas."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokazuje dzisiejsze mecze w Sporcie bez obserwowania każdej drużyny."
+          }
+        }
+      }
+    },
     "Sign in to Trakt" : {
       "localizations" : {
         "es" : {
@@ -26395,6 +26667,40 @@
         }
       }
     },
+    "Their games today show in Sports, without following every team. Swipe left to stop following one." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sus partidos de hoy aparecen en Deportes, sin seguir a todos los equipos. Desliza a la izquierda para dejar de seguir una."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihre heutigen Spiele erscheinen unter Sport, ohne jedem Team zu folgen. Wische nach links, um einem nicht mehr zu folgen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leurs matchs du jour s’affichent dans Sports, sans suivre chaque équipe. Balayez vers la gauche pour ne plus en suivre une."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os jogos de hoje aparecem em Desporto, sem seguir todas as equipas. Deslize para a esquerda para deixar de seguir uma."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ich dzisiejsze mecze są w Sporcie bez obserwowania każdej drużyny. Przesuń w lewo, aby przestać obserwować."
+          }
+        }
+      }
+    },
     "This Apple TV can't run the upscaler" : {
       "localizations" : {
         "es" : {
@@ -26833,6 +27139,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dzisiaj"
+          }
+        }
+      }
+    },
+    "Today in your competitions" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy en tus competiciones"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute in deinen Wettbewerben"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aujourd’hui dans vos compétitions"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoje nas suas competições"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dziś w Twoich rozgrywkach"
           }
         }
       }
