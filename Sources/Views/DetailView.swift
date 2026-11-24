@@ -465,6 +465,8 @@ struct StreamListView: View {
 
     @State private var results: [FoundStream] = []
     @State private var loading = true
+    /// Addons yet to answer, while the first results are already shown.
+    @State private var addonsRemaining = 0
     @State private var status: String?
     @State private var playback: PlaybackRequest?
 
@@ -584,20 +586,27 @@ struct StreamListView: View {
     @ViewBuilder
     private var list: some View {
         VStack(alignment: .leading, spacing: 16) {
-            if loading {
-                ProgressView(String(localized: "Searching \(settings.addons.count) addons…"))
+            if loading && results.isEmpty {
+                ProgressView(String(localized: "Searching \(searchedAddons.count) addons…"))
                     .frame(maxWidth: .infinity)
                     .padding(.top, 80)
             } else if results.isEmpty {
                 Text(settings.addons.isEmpty
                      ? "No addons yet. Add a Stremio addon in Settings › Connections."
-                     : "No playable streams found.")
+                     : searchedAddons.isEmpty
+                        ? "None of your addons are switched on for this. Change that in Settings › Connections."
+                        : "No playable streams found.")
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 40)
             } else {
                 Text(String(localized: "\(results.count) streams from \(addonCount) addons").uppercased())
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white.opacity(0.7))
+                if loading && addonsRemaining > 0 {
+                    Text("Still searching \(addonsRemaining) addons…")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.6))
+                }
             }
             if let status {
                 Text(status)
@@ -632,18 +641,25 @@ struct StreamListView: View {
         }
     }
 
+    /// The addons switched on for this kind of title (movies or series).
+    private var searchedAddons: [AddonEntry] {
+        settings.addons(for: AddonUse(stremioType: target.type))
+    }
+
     private func search() async {
         loading = true
-        lockedAddons = settings.addons.filter { ParentalLock.shared.isLocked(addon: $0, prefs: settings.prefs) }.count
+        let addons = searchedAddons
+        lockedAddons = addons.filter { ParentalLock.shared.isLocked(addon: $0, prefs: settings.prefs) }.count
         var found: [FoundStream] = []
         var failures: [String] = []
         let type = target.type
         let id = target.id
+        let asked = addons.filter { URL(string: $0.manifestURL) != nil && !ParentalLock.shared.isLocked(addon: $0, prefs: settings.prefs) }
+        addonsRemaining = asked.count
 
         await withTaskGroup(of: (String, [StremioStream]?).self) { group in
-            for addon in settings.addons {
-                guard let url = URL(string: addon.manifestURL),
-                      !ParentalLock.shared.isLocked(addon: addon, prefs: settings.prefs) else { continue }
+            for addon in asked {
+                guard let url = URL(string: addon.manifestURL) else { continue }
                 let name = addon.name
                 group.addTask {
                     let streams = try? await StremioAddonClient(manifestURL: url).streams(type: type, id: id)
@@ -656,6 +672,9 @@ struct StreamListView: View {
                 } else {
                     failures.append(name)
                 }
+                addonsRemaining -= 1
+                // Shown as each addon answers, so a slow one doesn't hold up the rest.
+                results = arrange(found.filter { $0.stream.playableURL != nil })
             }
         }
 

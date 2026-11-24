@@ -5000,6 +5000,40 @@
         }
       }
     },
+    "Automatic: from what the addon says it offers. Untick what you don't want it searched for, e.g. a sports addon for movies." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático: según lo que el complemento dice ofrecer. Desmarca aquello para lo que no quieras que se busque en él, p. ej. un complemento de deportes para películas."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatisch: nach dem, was das Add-on anbietet. Entferne das Häkchen bei allem, wofür es nicht durchsucht werden soll, z. B. ein Sport-Add-on für Filme."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatique : d’après ce que l’add-on dit proposer. Décochez ce pour quoi vous ne voulez pas qu’il soit utilisé, par ex. un add-on de sport pour les films."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático: conforme o que o add-on diz oferecer. Desmarque aquilo para que não o quer pesquisado, por ex. um add-on de desporto para filmes."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatycznie: według tego, co dodatek oferuje. Odznacz to, do czego nie ma być przeszukiwany, np. dodatek sportowy do filmów."
+          }
+        }
+      }
+    },
     "AV1 decoding" : {
       "localizations" : {
         "es" : {
@@ -5030,6 +5064,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dekodowanie AV1"
+          }
+        }
+      }
+    },
+    "Back to automatic" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a automático"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück zu automatisch"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenir en automatique"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar ao automático"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wróć do automatycznego"
           }
         }
       }
@@ -6650,6 +6718,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wybierz drużyny w sekcji Moje drużyny, aby widzieć, kiedy grają lub się ścigają."
+          }
+        }
+      }
+    },
+    "Chosen by you. Movies and series are only looked for in the addons ticked for them, and so are matches in Sports." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegido por ti. Las películas y series solo se buscan en los complementos marcados para ellas, igual que los partidos en Deportes."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von dir gewählt. Filme und Serien werden nur in den dafür angehakten Add-ons gesucht, ebenso Spiele unter Sport."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisi par vous. Les films et séries ne sont cherchés que dans les add-ons cochés pour eux, de même que les matchs dans Sports."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolhido por si. Filmes e séries só são procurados nos add-ons marcados para eles, tal como os jogos em Desporto."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybrane przez Ciebie. Filmy i seriale są szukane tylko w dodatkach zaznaczonych dla nich, tak samo mecze w Sporcie."
           }
         }
       }
@@ -16229,6 +16331,40 @@
         }
       }
     },
+    "None of your addons are switched on for this. Change that in Settings › Connections." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguno de tus complementos está activado para esto. Cámbialo en Ajustes › Conexiones."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keines deiner Add-ons ist dafür eingeschaltet. Ändere das unter Einstellungen › Verbindungen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun de vos add-ons n’est activé pour cela. Modifiez-le dans Réglages › Connexions."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhum dos seus add-ons está ativado para isto. Altere em Definições › Ligações."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Żaden z Twoich dodatków nie jest do tego włączony. Zmień to w Ustawienia › Połączenia."
+          }
+        }
+      }
+    },
     "None of your channels list it at that time. Listings can be added late, so try again closer to the start." : {
       "localizations" : {
         "es" : {
@@ -23753,6 +23889,40 @@
         }
       }
     },
+    "Sports & live TV" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deportes y TV en directo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sport & Live-TV"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sports et TV en direct"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desporto e TV em direto"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sport i TV na żywo"
+          }
+        }
+      }
+    },
     "Sports channels" : {
       "localizations" : {
         "es" : {
@@ -24157,6 +24327,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pozostań odblokowany przez"
+          }
+        }
+      }
+    },
+    "Still searching %lld addons…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún buscando en %lld complementos…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durchsuche noch %lld Add-ons…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche encore dans %lld add-ons…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ainda a pesquisar em %lld add-ons…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nadal przeszukuję dodatki: %lld…"
           }
         }
       }
@@ -24599,6 +24803,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zmień konto"
+          }
+        }
+      }
+    },
+    "Switched off: it isn't searched for anything, and keeps its settings for when you switch it back on." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado: no se busca en él nada y conserva sus ajustes para cuando lo vuelvas a activar."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausgeschaltet: Es wird für nichts durchsucht und behält seine Einstellungen, bis du es wieder einschaltest."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé : il n’est utilisé pour aucune recherche et garde ses réglages pour quand vous le réactiverez."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desativado: não é pesquisado para nada e mantém as definições para quando o voltar a ativar."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wyłączony: nie jest przeszukiwany i zachowuje ustawienia do ponownego włączenia."
           }
         }
       }
@@ -27926,6 +28164,40 @@
         }
       }
     },
+    "Use" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwendung"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisation"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilização"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użycie"
+          }
+        }
+      }
+    },
     "Use for Live TV" : {
       "localizations" : {
         "es" : {
@@ -28058,6 +28330,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Użyj nazwy dostawcy"
+          }
+        }
+      }
+    },
+    "Use this addon" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar este complemento"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses Add-on verwenden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser cet add-on"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar este add-on"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Używaj tego dodatku"
           }
         }
       }

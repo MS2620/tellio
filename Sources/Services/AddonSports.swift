@@ -19,23 +19,51 @@ struct AddonSportsHit: Identifiable {
 }
 
 enum AddonSports {
+    /// How long one addon gets for the whole search, so a slow one can't hold up the rest.
+    static let addonTimeout: Double = 20
+    /// Requests sent to one addon at a time.
+    private static let concurrentRequests = 6
+
+    /// Searches every addon at once. After each one finishes (or runs out of time), `progress`
+    /// gets everything found so far, best first, and how many addons are still searching.
     /// - Parameter channelNames: channels the TV guide search found the game on.
-    static func search(_ fixture: Fixture, addons: [AddonEntry], channelNames: [String]) async -> [AddonSportsHit] {
+    static func search(_ fixture: Fixture, addons: [AddonEntry], channelNames: [String],
+                       progress: @escaping @MainActor ([AddonSportsHit], Int) -> Void) async {
         let teams = teamNames(fixture)
         let channels = Array(Set((fixture.broadcasts + channelNames).map(GuideText.phrase).filter { $0.count >= 3 }))
-        guard !teams.isEmpty || !channels.isEmpty else { return [] }
+        let searched = addons.compactMap { addon in URL(string: addon.manifestURL).map { (addon, $0) } }
+        guard (!teams.isEmpty || !channels.isEmpty) && !searched.isEmpty else {
+            await progress([], 0)
+            return
+        }
 
         var hits: [AddonSportsHit] = []
+        var remaining = searched.count
         await withTaskGroup(of: [AddonSportsHit].self) { group in
-            for addon in addons {
-                guard let url = URL(string: addon.manifestURL) else { continue }
+            for (addon, url) in searched {
                 group.addTask {
-                    await search(addon: addon, url: url, fixture: fixture, teams: teams, channels: channels)
+                    await withTimeout(addonTimeout) {
+                        await search(addon: addon, url: url, fixture: fixture, teams: teams, channels: channels)
+                    } ?? []
                 }
             }
-            for await found in group { hits += found }
+            for await found in group {
+                hits += found
+                remaining -= 1
+                await progress(sorted(hits, addons: addons), remaining)
+            }
         }
-        // Games first (they are the match itself), then channels; addon order within each.
+    }
+
+    /// While a search is repeated (with more channels from the guide), what the last one found
+    /// stays listed until the new one has finished.
+    static func merged(_ hits: [AddonSportsHit], with earlier: [AddonSportsHit]) -> [AddonSportsHit] {
+        let ids = Set(hits.map(\.id))
+        return hits + earlier.filter { !ids.contains($0.id) }
+    }
+
+    /// Games first (they are the match itself), then channels; addon order within each.
+    private static func sorted(_ hits: [AddonSportsHit], addons: [AddonEntry]) -> [AddonSportsHit] {
         let order = Dictionary(addons.enumerated().map { ($0.element.name, $0.offset) }, uniquingKeysWith: { a, _ in a })
         func rank(_ kind: AddonSportsHit.Kind) -> Int {
             switch kind {
@@ -48,6 +76,39 @@ enum AddonSports {
             if a.kind != b.kind { return rank(a.kind) < rank(b.kind) }
             return (order[a.addonName] ?? 0) < (order[b.addonName] ?? 0)
         }
+    }
+
+    /// `work`'s result, or nil if it takes longer than `seconds` (it's cancelled then).
+    private static func withTimeout<Value>(_ seconds: Double, _ work: @escaping () async -> Value) async -> Value? {
+        await withTaskGroup(of: Value?.self) { group in
+            group.addTask { await work() }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(seconds))
+                return nil
+            }
+            let first = await group.next() ?? nil
+            group.cancelAll()
+            return first
+        }
+    }
+
+    /// Runs the requests a few at a time and puts everything they list together.
+    private static func fetch(_ requests: [() async -> [StremioMeta]]) async -> [[StremioMeta]] {
+        var results: [[StremioMeta]] = []
+        var start = 0
+        while start < requests.count && !Task.isCancelled {
+            let batch = requests[start..<min(start + concurrentRequests, requests.count)]
+            await withTaskGroup(of: (Int, [StremioMeta]).self) { group in
+                for (offset, request) in batch.enumerated() {
+                    group.addTask { (offset, await request()) }
+                }
+                var batchResults = Array(repeating: [StremioMeta](), count: batch.count)
+                for await (offset, metas) in group { batchResults[offset] = metas }
+                results += batchResults
+            }
+            start += concurrentRequests
+        }
+        return results
     }
 
     /// Whether any addon has a catalogue that could hold sports (anything but movies and series).
@@ -69,20 +130,31 @@ enum AddonSports {
         guard !catalogues.isEmpty else { return [] }
         let client = StremioAddonClient(manifestURL: url)
 
-        // Everything each catalogue offers that might be this game, by meta id.
-        var found: [String: (meta: StremioMeta, kind: AddonSportsHit.Kind)] = [:]
+        // Each team's full name, and the first few channels, in every catalogue that searches;
+        // and each catalogue that can be read whole. All sent together, a few at a time.
+        let names = teams.flatMap { [$0.home.first, $0.away.first].compactMap { $0 } }
+        let queries = Array(Set(names + channels.prefix(4)))
+        var requests: [() async -> [StremioMeta]] = []
+        var whole: [Int: String] = [:]
         for catalogue in catalogues {
-            var metas: [StremioMeta] = []
             if catalogue.supportsSearch {
-                // Each team's full name, and the first few channels.
-                let names = teams.flatMap { [$0.home.first, $0.away.first].compactMap { $0 } }
-                for query in Set(names + channels.prefix(4)) {
-                    metas += (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: query)) ?? []
+                for query in queries {
+                    requests.append { (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: query)) ?? [] }
                 }
             }
             if !catalogue.needsExtra {
-                metas += (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: nil)) ?? []
+                whole[requests.count] = "\(catalogue.type)|\(catalogue.id)"
+                requests.append { (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: nil)) ?? [] }
             }
+        }
+        let results = await fetch(requests)
+        guard !Task.isCancelled else { return [] }
+
+        // Everything each catalogue offers that might be this game, by meta id.
+        var found: [String: (meta: StremioMeta, kind: AddonSportsHit.Kind)] = [:]
+        var listed: [String: [StremioMeta]] = [:]
+        for (index, metas) in results.enumerated() {
+            if let id = whole[index] { listed[id] = metas }
             for meta in metas {
                 if let kind = match(meta, teams: teams, channels: channels), found[meta.id] == nil {
                     found[meta.id] = (meta, kind)
@@ -97,8 +169,7 @@ enum AddonSports {
         let sportLists = catalogues.filter { isFor(sport: fixture, $0) && !$0.needsExtra }
         var offered = 0
         for catalogue in sportLists where offered < 6 {
-            let metas = (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: nil)) ?? []
-            for meta in metas where offered < 6 && found[meta.id] == nil && !GuideText.hasVersus(meta.name ?? "") {
+            for meta in listed["\(catalogue.type)|\(catalogue.id)"] ?? [] where offered < 6 && found[meta.id] == nil && !GuideText.hasVersus(meta.name ?? "") {
                 found[meta.id] = (meta, .sportChannel)
                 offered += 1
             }
