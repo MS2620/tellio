@@ -202,20 +202,18 @@ enum AddonSports {
         return words.contains { text.contains(" " + $0 + " ") }
     }
 
-    /// Each team's names, normalized: the full name first, then shorter ones.
+    /// Each team's names, normalized: the full name first, then the other names the TV guide
+    /// search uses ("Man City", "Wigan"), which never shorten to a word two clubs share.
     private static func teamNames(_ fixture: Fixture) -> [(home: [String], away: [String])] {
         func names(_ side: Fixture.Side?) -> [String] {
             guard let side else { return [] }
-            var list = [side.name] + side.aliases
-            // "Wigan Warriors" is often just "Wigan".
-            if let first = side.name.split(separator: " ").first, first.count >= 4, side.name.contains(" ") {
-                list.append(String(first))
-            }
-            var seen = Set<String>()
-            return list.map(GuideText.phrase).filter { $0.count >= 3 && seen.insert($0).inserted }
+            let full = GuideText.phrase(side.name)
+            let others = TeamNames.aliases(side.name, extra: side.aliases).filter { $0 != full }
+            return ([full] + others.sorted { $0.count > $1.count }).filter { $0.count >= 3 }
         }
         let home = names(fixture.home), away = names(fixture.away)
-        return home.isEmpty && away.isEmpty ? [] : [(home, away)]
+        // A game listing has to name both sides; otherwise any game of either team would match.
+        return home.isEmpty || away.isEmpty ? [] : [(home, away)]
     }
 
     private static func match(_ meta: StremioMeta, teams: [(home: [String], away: [String])],
@@ -223,11 +221,8 @@ enum AddonSports {
         let name = meta.name ?? ""
         let text = GuideText.normalize(name + " " + (meta.description ?? ""))
         func has(_ phrase: String) -> Bool { text.contains(" " + phrase + " ") }
-        for side in teams {
-            let home = side.home.contains(where: has), away = side.away.contains(where: has)
-            if home && away { return .game }
-            // One side named in a "this v that" title, the other spelled differently.
-            if (home || away) && !side.home.isEmpty && !side.away.isEmpty && GuideText.hasVersus(name) { return .game }
+        for side in teams where side.home.contains(where: has) && side.away.contains(where: has) {
+            return .game
         }
         let title = GuideText.phrase(name)
         for channel in channels {
