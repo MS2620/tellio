@@ -27,6 +27,30 @@ struct SportLeague: Hashable, Identifiable {
     var id: String { "\(sport)/\(slug)" }
 }
 
+/// A competition followed for its games today (Sports › Today in your competitions), such as
+/// the Champions League, without following every team in it. Only ESPN competitions: their
+/// scoreboards list every game of the day.
+struct FavouriteCompetition: Codable, Hashable, Identifiable {
+    /// ESPN sport path ("soccer", "rugby", "football"…).
+    let sport: String
+    /// ESPN league slug or id ("uefa.champions", "267979", "nfl").
+    let league: String
+    let name: String
+
+    var id: String { "\(sport)/\(league)" }
+
+    init(_ league: SportLeague) {
+        sport = league.sport
+        self.league = league.slug
+        name = league.name
+    }
+
+    /// Cricket and the Super League come from other sources, and F1 has its race weekend.
+    static func canFollow(_ league: SportLeague) -> Bool {
+        !["cricket", "f1", SuperLeagueClient.sport].contains(league.sport)
+    }
+}
+
 enum SportsCatalog {
     /// ESPN rugby competitions (ids from ESPN's league list).
     static let rugby: [SportLeague] = [
@@ -207,6 +231,11 @@ enum SportsDate {
 
     static func parse(_ string: String) -> Date? {
         internet.date(from: string) ?? noSeconds.date(from: string) ?? fractional.date(from: string)
+    }
+
+    /// "20261125": ESPN's `dates` parameter for one day (UTC).
+    static func dayParameter(_ date: Date) -> String {
+        range.string(from: date)
     }
 
     /// ESPN's `dates` parameter for any two dates.
@@ -564,14 +593,51 @@ struct ESPNClient {
         return fixtures.filter { $0.lastsUntil > from && $0.date <= until }.sorted { $0.date < $1.date }
     }
 
+    /// Today's games in a competition, from its scoreboard: those kicking off today (local time),
+    /// and any from last night still under way. `teams` marks the followed teams playing.
+    func todaysGames(in followed: FavouriteCompetition, teams: [FavouriteTeam]) async -> [Fixture] {
+        let now = Date()
+        let calendar = Calendar.current
+        // One request per day: some scoreboards (football's) refuse a range. Yesterday for
+        // late games still on; tomorrow because today here can reach into it in UTC.
+        let days = Set([-1, 0, 1].map { now.addingTimeInterval(TimeInterval($0) * 86_400) }.map(SportsDate.dayParameter))
+        var events: [String: ESPNEvent] = [:]
+        await withTaskGroup(of: [ESPNEvent].self) { group in
+            for day in days {
+                let path = "/sports/\(followed.sport)/\(followed.league)/scoreboard?dates=\(day)&limit=200"
+                group.addTask { (try? await self.fetch(ESPNEventsResponse.self, path))?.events ?? [] }
+            }
+            for await list in group {
+                for event in list { events[event.id] = event }
+            }
+        }
+        let underWaySince = now.addingTimeInterval(-4 * 3600)
+        return events.values.compactMap { event -> Fixture? in
+            guard let fixture = fixture(from: event, sport: followed.sport, competition: followed.name,
+                                        leagueSlug: followed.league, teams: teams) else { return nil }
+            let onNow = fixture.date <= now && fixture.date > underWaySince && fixture.score?.phase != .finished
+            return calendar.isDateInToday(fixture.date) || onNow ? fixture : nil
+        }
+        .sorted { $0.date != $1.date ? $0.date < $1.date : $0.id < $1.id }
+    }
+
     /// Builds a fixture if any of `teams` is playing in the event.
     private func fixture(from event: ESPNEvent, teams: [FavouriteTeam], competition fallback: String? = nil,
                          leagueSlug: String? = nil) -> Fixture? {
+        guard let competitors = event.competitions?.first?.competitors else { return nil }
+        let playing = teams.filter { team in competitors.contains { $0.team?.id == team.teamID } }
+        guard let first = playing.first else { return nil }
+        return fixture(from: event, sport: first.sport, competition: fallback ?? first.leagueName,
+                       leagueSlug: leagueSlug, teams: playing)
+    }
+
+    /// Builds a fixture for any event; `teams` are the followed ones playing in it (maybe none).
+    /// - Parameter fallback: the competition's name when ESPN's event doesn't give one.
+    private func fixture(from event: ESPNEvent, sport: String, competition fallback: String,
+                         leagueSlug: String?, teams playing: [FavouriteTeam]) -> Fixture? {
         guard let competition = event.competitions?.first,
               let competitors = competition.competitors,
               let date = SportsDate.parse(event.date) else { return nil }
-        let playing = teams.filter { team in competitors.contains { $0.team?.id == team.teamID } }
-        guard let first = playing.first else { return nil }
         // Postponed and cancelled games are left out; finished ones stay a while with their score.
         if let name = competition.status?.type?.name,
            name.contains("POSTPONED") || name.contains("CANCELED") || name.contains("CANCELLED") {
@@ -599,9 +665,9 @@ struct ESPNClient {
 
         let title = [home?.name, away?.name].compactMap { $0 }.joined(separator: " v ")
         return Fixture(
-            id: "\(first.sport)-\(event.id)",
+            id: "\(sport)-\(event.id)",
             date: date,
-            competition: event.league?.name ?? fallback ?? first.leagueName,
+            competition: event.league?.name ?? fallback,
             title: title.isEmpty ? (event.name ?? "Match") : title,
             home: home,
             away: away,
@@ -612,7 +678,7 @@ struct ESPNClient {
             score: Self.score(for: event),
             eventID: event.id,
             scoreboardPath: (event.league?.slug ?? leagueSlug).flatMap {
-                $0.isEmpty || $0 == "all" ? nil : "/sports/\(first.sport)/\($0)/scoreboard"
+                $0.isEmpty || $0 == "all" ? nil : "/sports/\(sport)/\($0)/scoreboard"
             }
         )
     }
@@ -680,6 +746,26 @@ struct ESPNClient {
 
 /// Loads every followed team's upcoming fixtures in one go.
 enum SportsLoader {
+    /// Today's games in each followed competition, in the order they were followed; ones with
+    /// no games today are left out. Live scores follow them like the teams' fixtures.
+    static func today(in competitions: [FavouriteCompetition],
+                      teams: [FavouriteTeam]) async -> [(competition: FavouriteCompetition, fixtures: [Fixture])] {
+        guard !competitions.isEmpty else { return [] }
+        let espn = ESPNClient()
+        var found: [String: [Fixture]] = [:]
+        await withTaskGroup(of: (String, [Fixture]).self) { group in
+            for competition in competitions {
+                group.addTask { (competition.id, await espn.todaysGames(in: competition, teams: teams)) }
+            }
+            for await (id, fixtures) in group { found[id] = fixtures }
+        }
+        await LiveScores.shared.track(found.values.flatMap { $0 })
+        return competitions.compactMap { competition in
+            guard let fixtures = found[competition.id], !fixtures.isEmpty else { return nil }
+            return (competition, fixtures)
+        }
+    }
+
     static func upcoming(teams: [FavouriteTeam], days: Int) async -> [Fixture] {
         guard !teams.isEmpty else { return [] }
         let espn = ESPNClient()

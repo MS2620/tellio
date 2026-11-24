@@ -39,7 +39,8 @@ final class LiveScores: ObservableObject {
         let calendar = Calendar.current
         guard let endOfTomorrow = calendar.date(byAdding: .day, value: 2, to: calendar.startOfDay(for: now)) else { return [] }
         return tracked.values
-            .filter { $0.guideTime > now && $0.guideTime < endOfTomorrow }
+            // Followed competitions' other games are tracked for their scores, but aren't the user's.
+            .filter { !$0.followed.isEmpty && $0.guideTime > now && $0.guideTime < endOfTomorrow }
             .sorted { $0.guideTime < $1.guideTime }
     }
 
@@ -48,9 +49,10 @@ final class LiveScores: ObservableObject {
         return tracked.values.filter { !ids.contains($0.id) && $0.lastsUntil > cutoff && $0.date <= Date() }
     }
 
-    /// Games on now, soonest kick-off first (for the Top Shelf).
+    /// Followed teams' games on now, soonest kick-off first (for the Top Shelf).
     var liveFixtures: [Fixture] {
-        underWay.filter { score(for: $0)?.phase != nil || $0.date <= Date() }.sorted { $0.date < $1.date }
+        underWay.filter { !$0.followed.isEmpty && (score(for: $0)?.phase != nil || $0.date <= Date()) }
+            .sorted { $0.date < $1.date }
     }
 
     func fixture(id: String) -> Fixture? { tracked[id] }

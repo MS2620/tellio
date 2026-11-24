@@ -209,6 +209,8 @@ struct Preferences: Codable, Equatable {
 
     // Sports
     var favouriteTeams: [FavouriteTeam] = []
+    /// Competitions followed for today's games (not for fixtures or tables).
+    var favouriteCompetitions: [FavouriteCompetition] = []
     var sportsDaysAhead = 14
     /// Every match of the followed teams gets a reminder.
     var remindTeamMatches = false
