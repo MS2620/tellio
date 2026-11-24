@@ -18,7 +18,40 @@ struct AddonSportsHit: Identifiable {
     let stream: StremioStream
 }
 
+/// The same game or channel from different addons, shown as one row. Each addon is in it once:
+/// an addon's own streams of one thing are usually different qualities, so they stay separate.
+struct AddonSportsGroup: Identifiable {
+    let hits: [AddonSportsHit]
+
+    var id: String { hits[0].id }
+    var first: AddonSportsHit { hits[0] }
+    var title: String { first.title }
+    var kind: AddonSportsHit.Kind { first.kind }
+    /// "1080p · Addon", or "2 sources · Addon, Other addon".
+    var subtitle: String {
+        guard hits.count > 1 else { return [first.stream.headline, first.addonName].joined(separator: " · ") }
+        return String(localized: "\(hits.count) sources · \(hits.map(\.addonName).joined(separator: ", "))")
+    }
+}
+
 enum AddonSports {
+    /// Puts together results with the same name and kind from different addons, keeping their order.
+    static func grouped(_ hits: [AddonSportsHit]) -> [AddonSportsGroup] {
+        var groups: [[AddonSportsHit]] = []
+        for hit in hits {
+            let key = GuideText.phrase(hit.title)
+            if let index = groups.firstIndex(where: { group in
+                group[0].kind == hit.kind && GuideText.phrase(group[0].title) == key
+                    && !group.contains { $0.addonName == hit.addonName }
+            }) {
+                groups[index].append(hit)
+            } else {
+                groups.append([hit])
+            }
+        }
+        return groups.map(AddonSportsGroup.init)
+    }
+
     /// How long one addon gets for the whole search, so a slow one can't hold up the rest.
     static let addonTimeout: Double = 20
     /// Requests sent to one addon at a time.

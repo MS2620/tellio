@@ -413,6 +413,8 @@ struct FixtureDetailView: View {
     @State private var addonsHaveLive = false
     /// Addons still searching, while some results are already shown.
     @State private var addonsRemaining = 0
+    /// A row with several sources, whose source is being chosen.
+    @State private var choosingSource: AddonSportsGroup?
 
     /// The addons switched on for sports, without those locked by parental controls.
     private var unlockedAddons: [AddonEntry] {
@@ -531,6 +533,14 @@ struct FixtureDetailView: View {
         .sheet(isPresented: $showingSportsChannels) {
             SportsChannelsSheet()
         }
+        .confirmationDialog(choosingSource?.title ?? "", isPresented: Binding(
+            get: { choosingSource != nil }, set: { if !$0 { choosingSource = nil } }
+        ), titleVisibility: .visible, presenting: choosingSource) { group in
+            ForEach(group.hits) { hit in
+                Button("\(hit.addonName) · \(hit.stream.headline)") { playAddon(hit) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 
     private var progressText: String {
@@ -610,18 +620,18 @@ struct FixtureDetailView: View {
                         note("Not found in your addons. Addons that list live games or channels are searched by the team names and the channels showing it.")
                     }
                 }
-                ForEach(addonHits.filter { $0.kind != .sportChannel }) { hit in
-                    addonRow(hit)
+                ForEach(AddonSports.grouped(addonHits.filter { $0.kind != .sportChannel })) { group in
+                    addonRow(group)
                 }
-                let maybe = addonHits.filter { $0.kind == .sportChannel }
+                let maybe = AddonSports.grouped(addonHits.filter { $0.kind == .sportChannel })
                 if !maybe.isEmpty {
                     Text("CHANNELS FOR THIS SPORT · MAY BE SHOWING IT")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white.opacity(0.6))
                         .padding(.horizontal, 18)
                         .padding(.top, 10)
-                    ForEach(maybe) { hit in
-                        addonRow(hit)
+                    ForEach(maybe) { group in
+                        addonRow(group)
                     }
                 }
                 if !addonHits.isEmpty && addonsRemaining > 0 {
@@ -631,14 +641,15 @@ struct FixtureDetailView: View {
         }
     }
 
-    private func addonRow(_ hit: AddonSportsHit) -> some View {
+    /// One source plays straight away; several (the same thing from different addons) are chosen from first.
+    private func addonRow(_ group: AddonSportsGroup) -> some View {
         Button {
-            playAddon(hit)
+            if group.hits.count > 1 { choosingSource = group } else { playAddon(group.first) }
         } label: {
-            ListRowLabel(title: hit.title,
-                         subtitle: [hit.stream.headline, hit.addonName].joined(separator: " · "),
-                         icon: hit.kind == .game ? "sportscourt" : "tv",
-                         trailing: String(localized: "Watch"))
+            ListRowLabel(title: group.title,
+                         subtitle: group.subtitle,
+                         icon: group.kind == .game ? "sportscourt" : "tv",
+                         trailing: group.hits.count > 1 ? String(localized: "Choose") : String(localized: "Watch"))
         }
         .buttonStyle(PlainPressStyle())
     }
