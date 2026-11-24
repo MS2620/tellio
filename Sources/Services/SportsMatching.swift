@@ -31,8 +31,9 @@ enum ListingMatcher {
     /// "Premier League: Arsenal v Spurs [HD] | 20:00" → ("arsenal", "spurs"). Several splits
     /// may be possible when only dashes separate the parts ("EPL - Arsenal - Spurs").
     static func sidePairs(_ title: String) -> [(String, String)] {
-        var text = " " + title + " "
-        // Brackets hold extras: "(Premier League)", "[HD]".
+        // A channel with the game in brackets ("Example TV 05 [Arsenal v Spurs]"): the bracket is the game.
+        // Otherwise brackets hold extras: "(Premier League)", "[HD]".
+        var text = " " + (ListingTitle.bracketedGame(title) ?? title) + " "
         text = text.replacingOccurrences(of: #"\([^)]*\)|\[[^\]]*\]|\{[^}]*\}"#, with: " ", options: .regularExpression)
         text = ListingDates.removingDates(text)
         // A competition before a colon, and a time or channel after a bar, aren't sides.
@@ -122,6 +123,59 @@ enum ListingMatcher {
             previous = current
         }
         return previous[b.count]
+    }
+}
+
+/// How a listing's name reads best in a row: the game when a channel carries it in brackets,
+/// without the country prefixes and quality tags addons put in front ("US| ", "(FHD) : ").
+enum ListingTitle {
+    private static let bracket = try! NSRegularExpression(pattern: #"\[([^\]]*)\]|\(([^)]*)\)|\{([^}]*)\}"#)
+
+    /// The game in a listing's brackets, if one names two sides: "[Arsenal v Spurs]".
+    static func bracketedGame(_ title: String) -> String? {
+        let range = NSRange(title.startIndex..., in: title)
+        for match in bracket.matches(in: title, range: range) {
+            for group in 1...3 {
+                guard let r = Range(match.range(at: group), in: title) else { continue }
+                let inside = String(title[r]).trimmingCharacters(in: .whitespaces)
+                if GuideText.hasVersus(inside) { return inside }
+            }
+        }
+        return nil
+    }
+
+    /// The row's title, and the channel showing it when the listing is a channel with the game
+    /// in brackets: ("Arsenal v Spurs", "Example TV 05").
+    static func parts(_ title: String) -> (title: String, channel: String?) {
+        guard let game = bracketedGame(title) else { return (tidy(title), nil) }
+        let rest = title.replacingOccurrences(of: "[" + game + "]", with: " ")
+            .replacingOccurrences(of: "(" + game + ")", with: " ")
+            .replacingOccurrences(of: "{" + game + "}", with: " ")
+        let channel = tidy(rest)
+        return (tidy(game), channel.isEmpty ? nil : channel)
+    }
+
+    /// "US| EXAMPLE TV 05" → "EXAMPLE TV 05"; "(FHD) : Example Sports 1" → "Example Sports 1".
+    static func tidy(_ text: String) -> String {
+        var result = text
+        let leading = [
+            #"^\s*[A-Za-z]{2,3}\s*[|:]\s*"#,            // US| , UK:
+            #"^\s*[\(\[][^\)\]]{1,12}[\)\]]\s*:?\s*"#, // (FHD) : , [HD]
+            #"^\s*[|:·•\-–]\s*"#,
+        ]
+        var changed = true
+        while changed {
+            changed = false
+            for pattern in leading {
+                let next = result.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+                if next != result, !next.trimmingCharacters(in: .whitespaces).isEmpty {
+                    result = next
+                    changed = true
+                }
+            }
+        }
+        return result.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: "|:·•-–")))
     }
 }
 
