@@ -179,6 +179,16 @@ enum TeamNames {
         return languages.compactMap { Locale(identifier: $0).localizedString(forRegionCode: code) }
     }
 
+    /// A name's words without club prefixes and suffixes ("fc", "afc"…).
+    static func coreWords(_ phrase: String) -> [String] {
+        phrase.split(separator: " ").map(String.init).filter { !affixes.contains($0) }
+    }
+
+    /// Too vague to name one team on its own: "manchester", "city", "real".
+    static func isTooVague(_ phrase: String) -> Bool {
+        ambiguous.contains(phrase) || tooGeneric.contains(phrase)
+    }
+
     /// Every name a guide might use for the team.
     static func aliases(_ name: String, extra: [String] = []) -> [String] {
         var result: Set<String> = []
