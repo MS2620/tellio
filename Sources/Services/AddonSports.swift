@@ -18,7 +18,40 @@ struct AddonSportsHit: Identifiable {
     let stream: StremioStream
 }
 
+/// The same game or channel from different addons, shown as one row. Each addon is in it once:
+/// an addon's own streams of one thing are usually different qualities, so they stay separate.
+struct AddonSportsGroup: Identifiable {
+    let hits: [AddonSportsHit]
+
+    var id: String { hits[0].id }
+    var first: AddonSportsHit { hits[0] }
+    var title: String { first.title }
+    var kind: AddonSportsHit.Kind { first.kind }
+    /// "1080p · Addon", or "2 sources · Addon, Other addon".
+    var subtitle: String {
+        guard hits.count > 1 else { return [first.stream.headline, first.addonName].joined(separator: " · ") }
+        return String(localized: "\(hits.count) sources · \(hits.map(\.addonName).joined(separator: ", "))")
+    }
+}
+
 enum AddonSports {
+    /// Puts together results with the same name and kind from different addons, keeping their order.
+    static func grouped(_ hits: [AddonSportsHit]) -> [AddonSportsGroup] {
+        var groups: [[AddonSportsHit]] = []
+        for hit in hits {
+            let key = GuideText.phrase(hit.title)
+            if let index = groups.firstIndex(where: { group in
+                group[0].kind == hit.kind && GuideText.phrase(group[0].title) == key
+                    && !group.contains { $0.addonName == hit.addonName }
+            }) {
+                groups[index].append(hit)
+            } else {
+                groups.append([hit])
+            }
+        }
+        return groups.map(AddonSportsGroup.init)
+    }
+
     /// How long one addon gets for the whole search, so a slow one can't hold up the rest.
     static let addonTimeout: Double = 20
     /// Requests sent to one addon at a time.
@@ -124,7 +157,7 @@ enum AddonSports {
     // MARK: One addon
 
     private static func search(addon: AddonEntry, url: URL, fixture: Fixture,
-                               teams: [(home: [String], away: [String])], channels: [String]) async -> [AddonSportsHit] {
+                               teams: [Sides], channels: [String]) async -> [AddonSportsHit] {
         guard let manifest = await AddonManifests.shared.manifest(url) else { return [] }
         let catalogues = liveCatalogues(manifest)
         guard !catalogues.isEmpty else { return [] }
@@ -132,7 +165,7 @@ enum AddonSports {
 
         // Each team's full name, and the first few channels, in every catalogue that searches;
         // and each catalogue that can be read whole. All sent together, a few at a time.
-        let names = teams.flatMap { [$0.home.first, $0.away.first].compactMap { $0 } }
+        let names = teams.flatMap { [$0.home.names.first, $0.away.names.first].compactMap { $0 } }
         let queries = Array(Set(names + channels.prefix(4)))
         var requests: [() async -> [StremioMeta]] = []
         var whole: [Int: String] = [:]
@@ -216,8 +249,11 @@ enum AddonSports {
         var dated: [(id: String, date: Date?, live: Bool)] = []
         for (id, entry) in games {
             let text = (entry.meta.name ?? "") + " " + (entry.meta.description ?? "")
-            let date = listedDate(text)
-            if let date, date < from || date > until { continue }
+            let found = ListingDates.find(in: text, near: fixture.date)
+            let date = found?.date
+            // Without a time zone (or a time) a listing is only good to the day.
+            let slack: TimeInterval = found?.precise == false ? 24 * 3600 : 0
+            if let date, date < from.addingTimeInterval(-slack) || date > until.addingTimeInterval(slack) { continue }
             if date == nil && !(from...until).contains(Date()) && text.lowercased().contains("live now") { continue }
             // "LIVE NOW" has no date, so it only counts while this game is on (not another
             // game between the same teams on a different day).
@@ -234,22 +270,6 @@ enum AddonSports {
             keep = Set(dated.map { $0.id })
         }
         return found.filter { $0.value.kind != .game || keep.contains($0.key) }
-    }
-
-    private static let listedDateFormat: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone(identifier: "UTC")
-        formatter.dateFormat = "d MMM yyyy HH:mm"
-        return formatter
-    }()
-
-    /// "25 Nov 2026 · 08:00 UTC", as sports addons often write a start time.
-    private static func listedDate(_ text: String) -> Date? {
-        guard let range = text.range(of: #"\d{1,2} [A-Za-z]{3} \d{4} · \d{1,2}:\d{2}"#, options: .regularExpression) else {
-            return nil
-        }
-        return listedDateFormat.date(from: text[range].replacingOccurrences(of: " · ", with: " "))
     }
 
     /// Whether a catalogue is the addon's list for the fixture's sport, by its name or id.
@@ -275,24 +295,35 @@ enum AddonSports {
 
     /// Each team's names, normalized: the full name first, then the other names the TV guide
     /// search uses ("Man City", "Wigan"), which never shorten to a word two clubs share.
-    private static func teamNames(_ fixture: Fixture) -> [(home: [String], away: [String])] {
-        func names(_ side: Fixture.Side?) -> [String] {
-            guard let side else { return [] }
-            let full = GuideText.phrase(side.name)
-            let others = TeamNames.aliases(side.name, extra: side.aliases).filter { $0 != full }
-            return ([full] + others.sorted { $0.count > $1.count }).filter { $0.count >= 3 }
-        }
-        let home = names(fixture.home), away = names(fixture.away)
-        // A game listing has to name both sides; otherwise any game of either team would match.
-        return home.isEmpty || away.isEmpty ? [] : [(home, away)]
+    /// The two teams of a game, as listings may name them.
+    struct Sides {
+        let home: ListingMatcher.Team
+        let away: ListingMatcher.Team
     }
 
-    private static func match(_ meta: StremioMeta, teams: [(home: [String], away: [String])],
+    private static func teamNames(_ fixture: Fixture) -> [Sides] {
+        func team(_ side: Fixture.Side?) -> ListingMatcher.Team? {
+            guard let side else { return nil }
+            let full = GuideText.phrase(side.name)
+            let others = TeamNames.aliases(side.name, extra: side.aliases).filter { $0 != full }
+            let names = ([full] + others.sorted { $0.count > $1.count }).filter { $0.count >= 3 }
+            return names.isEmpty ? nil : ListingMatcher.Team(names: names, code: side.code)
+        }
+        // A game listing has to name both sides; otherwise any game of either team would match.
+        guard let home = team(fixture.home), let away = team(fixture.away) else { return [] }
+        return [Sides(home: home, away: away)]
+    }
+
+    private static func match(_ meta: StremioMeta, teams: [Sides],
                               channels: [String]) -> AddonSportsHit.Kind? {
         let name = meta.name ?? ""
         let text = GuideText.normalize(name + " " + (meta.description ?? ""))
         func has(_ phrase: String) -> Bool { text.contains(" " + phrase + " ") }
-        for side in teams where side.home.contains(where: has) && side.away.contains(where: has) {
+        for side in teams where side.home.names.contains(where: has) && side.away.names.contains(where: has) {
+            return .game
+        }
+        // Not word for word: each side of the title compared on its own, by code or closely.
+        for side in teams where ListingMatcher.isMatch(name, home: side.home, away: side.away) {
             return .game
         }
         let title = GuideText.phrase(name)

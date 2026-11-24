@@ -70,6 +70,8 @@ struct Fixture: Identifiable, Hashable {
         var color: String? = nil
         /// Other names for the team, e.g. ESPN's short name ("Man United").
         var aliases: [String] = []
+        /// ESPN's short code ("MUN"), for listings like "MUN v LIV".
+        var code: String? = nil
     }
 
     struct Session: Hashable {
@@ -139,7 +141,7 @@ extension Fixture: Codable {
 }
 
 extension Fixture.Side: Codable {
-    private enum CodingKeys: String, CodingKey { case id, name, logo, color, aliases }
+    private enum CodingKeys: String, CodingKey { case id, name, logo, color, aliases, code }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -148,6 +150,7 @@ extension Fixture.Side: Codable {
         logo = try? c.decodeIfPresent(String.self, forKey: .logo)
         color = try? c.decodeIfPresent(String.self, forKey: .color)
         aliases = (try? c.decodeIfPresent([String].self, forKey: .aliases)) ?? []
+        code = try? c.decodeIfPresent(String.self, forKey: .code)
     }
 }
 
@@ -230,9 +233,11 @@ struct ESPNTeam: Decodable, Hashable {
     let location: String?
     let logoURL: String?
     let color: String?
+    /// "MUN", "LIV".
+    var abbreviation: String? = nil
 
     private enum CodingKeys: String, CodingKey {
-        case id, displayName, shortDisplayName, name, location, logo, logos, color
+        case id, displayName, shortDisplayName, name, location, logo, logos, color, abbreviation
     }
 
     private struct Logo: Decodable { let href: String? }
@@ -258,6 +263,7 @@ struct ESPNTeam: Decodable, Hashable {
         let logos = try? c.decode([Logo].self, forKey: .logos)
         logoURL = logos?.compactMap(\.href).first ?? (try? c.decode(String.self, forKey: .logo))
         color = try? c.decode(String.self, forKey: .color)
+        abbreviation = try? c.decode(String.self, forKey: .abbreviation)
     }
 
     /// Lower-cased names to look for in guide listings ("man united", "liverpool").
@@ -577,7 +583,8 @@ struct ESPNClient {
             return Fixture.Side(id: team.id, name: team.displayName,
                                 logo: team.logoURL ?? followed?.logo,
                                 color: team.color ?? followed?.color,
-                                aliases: [team.shortDisplayName].compactMap { $0 })
+                                aliases: [team.shortDisplayName].compactMap { $0 },
+                                code: team.abbreviation)
         }
         let homeTeam = competitors.first { $0.homeAway == "home" }?.team ?? competitors.first?.team
         let awayTeam = competitors.first { $0.homeAway == "away" }?.team ?? competitors.last?.team
