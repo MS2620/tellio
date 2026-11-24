@@ -24025,6 +24025,40 @@
         }
       }
     },
+    "Source %lld" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuente %lld"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle %lld"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source %lld"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fonte %lld"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Źródło %lld"
+          }
+        }
+      }
+    },
     "Source code: github.com/superuser404notfound/AetherEngine%@ and /FFmpegBuild%@." : {
       "localizations" : {
         "es" : {

@@ -16,33 +16,102 @@ struct AddonSportsHit: Identifiable {
     let title: String
     let kind: Kind
     let stream: StremioStream
+
+    /// What the row shows: the game when a channel carries it in brackets, without the
+    /// country prefixes and quality tags in front.
+    var displayTitle: String { ListingTitle.parts(title).title }
+    /// The channel showing it, when the listing named both.
+    var channel: String? { ListingTitle.parts(title).channel }
+
+    /// What tells this stream apart: its quality or label, without emoji, tips or the addon's
+    /// own name. Nil when the addon gives nothing useful.
+    var streamLabel: String? {
+        let listing = GuideText.phrase(title)
+        func usable(_ text: String?) -> [String] {
+            (text ?? "").components(separatedBy: .newlines).compactMap { line in
+                let cleaned = Self.cleaned(line, addonName: addonName)
+                let phrase = GuideText.phrase(cleaned)
+                guard !phrase.isEmpty, phrase != listing, !listing.contains(phrase) || phrase.count < 4,
+                      !phrase.hasPrefix("tip ") else { return nil }
+                return cleaned
+            }
+        }
+        var lines = usable(stream.name)
+        if lines.isEmpty { lines = usable(stream.title) + usable(stream.description) }
+        var label = lines.prefix(2).joined(separator: " · ")
+        if label.count > 60 { label = String(label.prefix(59)) + "…" }
+        if let quality = qualityLabel, !GuideText.normalize(label).contains(" " + GuideText.phrase(quality) + " ") {
+            label = label.isEmpty ? quality : quality + " · " + label
+        }
+        return label.isEmpty ? nil : label
+    }
+
+    /// "1080p", from whatever the addon wrote on the stream ("FHD", "1080"), or else in the
+    /// listing's name ("(FHD) : Example Sports").
+    private var qualityLabel: String? {
+        var lines = stream.resolution
+        if lines == 0 {
+            let words = Set(GuideText.phrase(title).split(separator: " ").map(String.init))
+            if !words.isDisjoint(with: ["4k", "uhd", "2160p"]) { lines = 2160 }
+            else if !words.isDisjoint(with: ["fhd", "1080p", "1080"]) { lines = 1080 }
+            else if !words.isDisjoint(with: ["hd", "720p"]) { lines = 720 }
+        }
+        return lines > 0 ? (lines == 2160 ? "4K" : "\(lines)p") : nil
+    }
+
+    /// A line without emoji or the addon's name, its spaces tidied.
+    private static func cleaned(_ line: String, addonName: String) -> String {
+        var scalars = String.UnicodeScalarView()
+        for scalar in line.unicodeScalars {
+            let p = scalar.properties
+            let emoji = p.isEmojiPresentation || (p.isEmoji && scalar.value >= 0x2100)
+                || scalar.value == 0xFE0F || scalar.value == 0x200D
+            if !emoji { scalars.append(scalar) }
+        }
+        var text = String(scalars)
+        if !addonName.isEmpty { text = text.replacingOccurrences(of: addonName, with: " ", options: .caseInsensitive) }
+        return text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: CharacterSet.whitespaces.union(CharacterSet(charactersIn: "|:·•-–,")))
+    }
+
+    /// For the source chooser: "1080p · Addon", or "Source 2 · Addon" when there's no label.
+    func chooserLabel(number: Int) -> String {
+        "\(streamLabel ?? String(localized: "Source \(number)")) · \(addonName)"
+    }
 }
 
-/// The same game or channel from different addons, shown as one row. Each addon is in it once:
-/// an addon's own streams of one thing are usually different qualities, so they stay separate.
+/// The same game or channel shown as one row: from different addons, or one addon's several
+/// streams of it. Its sources are chosen from when there's more than one.
 struct AddonSportsGroup: Identifiable {
     let hits: [AddonSportsHit]
 
     var id: String { hits[0].id }
     var first: AddonSportsHit { hits[0] }
-    var title: String { first.title }
+    var title: String { first.displayTitle }
     var kind: AddonSportsHit.Kind { first.kind }
-    /// "1080p · Addon", or "2 sources · Addon, Other addon".
+    /// "Example TV · 1080p · Addon", or "Example TV · 2 sources · Addon, Other addon".
     var subtitle: String {
-        guard hits.count > 1 else { return [first.stream.headline, first.addonName].joined(separator: " · ") }
-        return String(localized: "\(hits.count) sources · \(hits.map(\.addonName).joined(separator: ", "))")
+        var names: [String] = []
+        for hit in hits where !names.contains(hit.addonName) { names.append(hit.addonName) }
+        let detail = hits.count > 1
+            ? String(localized: "\(hits.count) sources · \(names.joined(separator: ", "))")
+            : [first.streamLabel, first.addonName].compactMap { $0 }.joined(separator: " · ")
+        return [first.channel, detail].compactMap { $0 }.joined(separator: " · ")
     }
 }
 
 enum AddonSports {
-    /// Puts together results with the same name and kind from different addons, keeping their order.
+    /// Puts together results that are the same game or channel (by their tidied names), from
+    /// any addon, keeping their order.
     static func grouped(_ hits: [AddonSportsHit]) -> [AddonSportsGroup] {
+        func key(_ hit: AddonSportsHit) -> String {
+            GuideText.phrase(hit.displayTitle) + "|" + GuideText.phrase(hit.channel ?? "")
+        }
         var groups: [[AddonSportsHit]] = []
         for hit in hits {
-            let key = GuideText.phrase(hit.title)
+            let hitKey = key(hit)
             if let index = groups.firstIndex(where: { group in
-                group[0].kind == hit.kind && GuideText.phrase(group[0].title) == key
-                    && !group.contains { $0.addonName == hit.addonName }
+                group[0].kind == hit.kind && key(group[0]) == hitKey
             }) {
                 groups[index].append(hit)
             } else {
@@ -50,6 +119,13 @@ enum AddonSports {
             }
         }
         return groups.map(AddonSportsGroup.init)
+    }
+
+    /// The rows for a match's "From your addons": the game and the channels showing it, and,
+    /// only when there are none, channels for the sport that may be showing it.
+    static func sections(_ hits: [AddonSportsHit]) -> (matches: [AddonSportsGroup], maybe: [AddonSportsGroup]) {
+        let matches = grouped(hits.filter { $0.kind != .sportChannel })
+        return (matches, matches.isEmpty ? grouped(hits.filter { $0.kind == .sportChannel }) : [])
     }
 
     /// How long one addon gets for the whole search, so a slow one can't hold up the rest.
@@ -199,13 +275,27 @@ enum AddonSports {
 
         // A list for the game's sport ("Cricket") whose channels may be showing it: offered
         // after any real matches, leaving out other games it lists.
+        // News channels never show games; channels of the broadcasters ESPN names come first.
         let sportLists = catalogues.filter { isFor(sport: fixture, $0) && !$0.needsExtra }
-        var offered = 0
-        for catalogue in sportLists where offered < 6 {
-            for meta in listed["\(catalogue.type)|\(catalogue.id)"] ?? [] where offered < 6 && found[meta.id] == nil && !GuideText.hasVersus(meta.name ?? "") {
-                found[meta.id] = (meta, .sportChannel)
-                offered += 1
+        let broadcasterWords = Set(fixture.broadcasts.compactMap { GuideText.phrase($0).split(separator: " ").first.map(String.init) }
+            .filter { $0.count >= 3 })
+        var candidates: [StremioMeta] = []
+        for catalogue in sportLists {
+            for meta in listed["\(catalogue.type)|\(catalogue.id)"] ?? [] {
+                let name = meta.name ?? ""
+                let text = GuideText.normalize(name)
+                guard found[meta.id] == nil, !GuideText.hasVersus(name), !text.contains(" news "),
+                      !candidates.contains(where: { $0.id == meta.id }) else { continue }
+                candidates.append(meta)
             }
+        }
+        func byBroadcaster(_ meta: StremioMeta) -> Bool {
+            let text = GuideText.normalize(meta.name ?? "")
+            return broadcasterWords.contains { text.contains(" " + $0 + " ") }
+        }
+        let ordered = candidates.filter(byBroadcaster) + candidates.filter { !byBroadcaster($0) }
+        for meta in ordered.prefix(6) {
+            found[meta.id] = (meta, .sportChannel)
         }
 
         var hits: [AddonSportsHit] = []
