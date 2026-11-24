@@ -46,7 +46,7 @@ targets:
       path: Config/Info.plist
       properties:
         CFBundleDisplayName: Tellio
-        # The languages Tellio is translated into. tvOS offers these per app in Settings › Apps › Tellio.
+        # The languages Tellio is translated into; it follows the Apple TV's language (Settings › General › Language).
         CFBundleDevelopmentRegion: en
         CFBundleLocalizations: [en, es, de, fr, pt-PT, pl]
         # Without these the generator writes a fixed "1.0 (1)"
