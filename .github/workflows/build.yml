@@ -101,6 +101,9 @@ jobs:
 
       - name: Build for tvOS (unsigned)
         run: |
+          # The version ends in the build number (0.1.0 becomes 0.1.12), so sideloaders that look
+          # for updates by version see each build as newer. Change "0.1" in project.yml.
+          VERSION="$(sed -n 's/^ *MARKETING_VERSION: "\([0-9]*\.[0-9]*\).*/\1/p' project.yml).${{ github.run_number }}"
           xcodebuild -version
           xcodebuild \
             -project Tellio.xcodeproj \
@@ -110,6 +113,7 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            MARKETING_VERSION="$VERSION" \
             SWIFT_COMPILATION_MODE=singlefile \
             TRAKT_CLIENT_ID="${{ secrets.TRAKT_CLIENT_ID }}" \
             TMDB_TOKEN="$TMDB_TOKEN_SCRAMBLED" \
@@ -205,6 +209,26 @@ jobs:
             --notes-file notes.md \
             --prerelease
 
+      # The AltStore-format source that Apple TV sideloaders (ATVLoadly, FlareStore) read, listing
+      # the newest builds. It lives alone on the altstore branch, so its raw address always holds
+      # a complete file: https://raw.githubusercontent.com/MS2620/tellio/altstore/altstore-tvos.json
+      - name: Update the AltStore source
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch --depth=1 origin altstore; then
+            git worktree add -B altstore feed FETCH_HEAD
+          else
+            git worktree add --detach feed
+            git -C feed switch --orphan altstore
+          fi
+          python3 Scripts/altstore-source.py tvos Tellio.ipa "build-${{ github.run_number }}" notes.md \
+            feed/altstore-tvos.json feed/altstore-tvos.json
+          git -C feed add altstore-tvos.json
+          git -C feed commit -q -m "altstore-tvos.json for build ${{ github.run_number }}"
+          git -C feed push origin altstore
+
   # Needs a paid Apple Developer account. Enable by setting the repository
   # variable ENABLE_TESTFLIGHT=true and adding the secrets listed in README.md.
   testflight:
@@ -244,6 +268,7 @@ jobs:
 
       - name: Archive
         run: |
+          VERSION="$(sed -n 's/^ *MARKETING_VERSION: "\([0-9]*\.[0-9]*\).*/\1/p' project.yml).${{ github.run_number }}"
           xcodebuild \
             -project Tellio.xcodeproj \
             -scheme Tellio \
@@ -257,6 +282,7 @@ jobs:
             DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
             CODE_SIGN_STYLE=Automatic \
             CURRENT_PROJECT_VERSION="${{ github.run_number }}" \
+            MARKETING_VERSION="$VERSION" \
             TRAKT_CLIENT_ID="${{ secrets.TRAKT_CLIENT_ID }}" \
             TMDB_TOKEN="$TMDB_TOKEN_SCRAMBLED" \
             SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
