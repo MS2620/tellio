@@ -608,7 +608,7 @@ private struct AetherPlaybackView: View {
                     closePanel()
                 }
             }
-            if current.watch != nil && !settings.addons.isEmpty {
+            if current.watch != nil && !settings.enabledAddons.isEmpty {
                 let subtitles = addonSubtitles ?? []
                 let names = Array(Set(subtitles.map(\.addonName))).sorted()
                 let heading = names.isEmpty ? String(localized: "FROM ADDONS") : String(localized: "FROM ADDONS · \(names.joined(separator: ", ").uppercased())")
@@ -910,8 +910,8 @@ private struct AetherPlaybackView: View {
     }
 
     private func loadAddonSubtitles() {
-        guard addonSubtitles == nil, let watch = current.watch, !settings.addons.isEmpty else { return }
-        let addons = settings.addons
+        guard addonSubtitles == nil, let watch = current.watch, !settings.enabledAddons.isEmpty else { return }
+        let addons = settings.enabledAddons
         let language = prefs.subtitleLanguage
         let requestID = current.id
         Task {

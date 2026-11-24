@@ -52,6 +52,8 @@ struct RootView: View {
                 }
             }
             .task { await ReminderStore.shared.run() }
+            // What each addon offers, for addons added before categories (and ones that changed).
+            .task { await settings.detectAddonUses() }
             // A match reminder's "Where to watch": its page, once the player (if any) has closed.
             .onChange(of: reminders.matchToOpen) { openReminderMatch() }
             .onChange(of: player.isPresentingPlayer) { openReminderMatch() }

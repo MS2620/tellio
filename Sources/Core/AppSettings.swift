@@ -66,6 +66,70 @@ struct AddonEntry: Codable, Identifiable, Hashable {
     var id: String { manifestURL }
     let manifestURL: String
     var name: String
+    /// Off: kept with its settings, but not used for anything.
+    var enabled = true
+    /// What it's searched for, as chosen by hand; nil follows `detectedUses`.
+    var chosenUses: Set<AddonUse>? = nil
+    /// What its manifest says it offers, saved when it was last read; nil until then.
+    var detectedUses: Set<AddonUse>? = nil
+
+    /// What it's searched for: the user's choice, or else what it offers.
+    var uses: Set<AddonUse> { chosenUses ?? detectedUses ?? Set(AddonUse.allCases) }
+
+    func isUsed(for use: AddonUse) -> Bool { enabled && uses.contains(use) }
+
+    init(manifestURL: String, name: String, detectedUses: Set<AddonUse>? = nil) {
+        self.manifestURL = manifestURL
+        self.name = name
+        self.detectedUses = detectedUses
+    }
+
+    // Addons saved before these settings existed come back switched on and automatic.
+    private enum CodingKeys: String, CodingKey { case manifestURL, name, enabled, chosenUses, detectedUses }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        manifestURL = try c.decode(String.self, forKey: .manifestURL)
+        name = try c.decode(String.self, forKey: .name)
+        enabled = (try? c.decodeIfPresent(Bool.self, forKey: .enabled)) ?? true
+        chosenUses = (try? c.decodeIfPresent([Lenient<AddonUse>].self, forKey: .chosenUses))
+            .map { Set($0.compactMap(\.value)) }
+        detectedUses = (try? c.decodeIfPresent([Lenient<AddonUse>].self, forKey: .detectedUses))
+            .map { Set($0.compactMap(\.value)) }
+    }
+}
+
+/// What an addon is searched for. Sports & live TV covers channels, games and highlights.
+enum AddonUse: String, Codable, CaseIterable, Identifiable {
+    case movies, series, live
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .movies: return String(localized: "Movies")
+        case .series: return String(localized: "Series")
+        case .live: return String(localized: "Sports & live TV")
+        }
+    }
+
+    /// For a Stremio type: "movie" is Movies, "series" (and "anime") Series.
+    init(stremioType: String) {
+        switch stremioType.lowercased() {
+        case "movie": self = .movies
+        case "series", "anime": self = .series
+        default: self = .live
+        }
+    }
+
+    /// What a manifest says the addon offers: the types it states (a movie addon with an odd
+    /// extra list stays a movie addon), or else the kinds of lists it has. Nothing stated means everything.
+    static func offered(by manifest: AddonManifest) -> Set<AddonUse> {
+        let stated = manifest.types ?? []
+        let types = stated.isEmpty ? (manifest.catalogs ?? []).map(\.type) : stated
+        let uses = Set(types.map(AddonUse.init(stremioType:)))
+        return uses.isEmpty ? Set(allCases) : uses
+    }
 }
 
 /// All user-supplied credentials. Everything is stored in the Keychain because
@@ -114,6 +178,31 @@ final class AppSettings: ObservableObject {
         didSet { Keychain.setCodable(xtreamAccounts, for: "xtreamAccounts") }
     }
     @Published var addons: [AddonEntry] { didSet { Keychain.setCodable(addons, for: "addons") } }
+
+    /// The addons switched on.
+    var enabledAddons: [AddonEntry] { addons.filter(\.enabled) }
+
+    /// The addons switched on and searched for `use` (parental locks aside).
+    func addons(for use: AddonUse) -> [AddonEntry] { addons.filter { $0.isUsed(for: use) } }
+
+    /// Saves what an addon offers, from its manifest just read.
+    @MainActor
+    func noteManifest(_ manifest: AddonManifest, for addonID: String) {
+        let uses = AddonUse.offered(by: manifest)
+        guard let index = addons.firstIndex(where: { $0.id == addonID }), addons[index].detectedUses != uses else { return }
+        addons[index].detectedUses = uses
+    }
+
+    /// Reads every addon's manifest (kept for an hour) and saves what each offers. Run at launch,
+    /// so addons added before categories existed get theirs.
+    @MainActor
+    func detectAddonUses() async {
+        for addon in addons {
+            guard let url = URL(string: addon.manifestURL),
+                  let manifest = await AddonManifests.shared.manifest(url) else { continue }
+            noteManifest(manifest, for: addon.id)
+        }
+    }
     @Published var prefs: Preferences {
         didSet {
             prefs.save()
