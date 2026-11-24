@@ -451,8 +451,8 @@ struct ContentSettingsView: View {
             SettingsNote("Adds the movie and series libraries that come with your IPTV login as extra rows on the Movies and Series tabs. Off by default.")
 
             GlassPanel("Catalogue") {
-                SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.tmdbLanguage,
-                                  options: LanguageOptions.tmdb.map { ($0.code, $0.name) })
+                SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.catalogueLanguage,
+                                  options: LanguageOptions.catalogue)
                 SettingsOptionRow("Region", icon: "mappin.and.ellipse", selection: $settings.prefs.tmdbRegion,
                                   options: LanguageOptions.regions.map { ($0.code, $0.name) })
             }

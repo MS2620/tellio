@@ -225,7 +225,7 @@ struct ConnectionsView: View {
     @ObservedObject private var trakt = TraktSync.shared
 
     private var languageName: String {
-        LanguageOptions.tmdb.first { $0.code == settings.prefs.tmdbLanguage }?.name ?? settings.prefs.tmdbLanguage
+        LanguageOptions.catalogue.first { $0.0 == settings.prefs.catalogueLanguage }?.1 ?? settings.prefs.catalogueLanguage
     }
 
     /// Re-checks whenever a login or the addon list changes.
@@ -582,8 +582,8 @@ struct TMDBAccountView: View {
                         : "Free from themoviedb.org → Settings → API. Use the long \"API Read Access Token\", not the short API key.")
 
                     GlassPanel("Catalogue") {
-                        SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.tmdbLanguage,
-                                          options: LanguageOptions.tmdb.map { ($0.code, $0.name) })
+                        SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.catalogueLanguage,
+                                          options: LanguageOptions.catalogue)
                         SettingsOptionRow("Region", icon: "mappin.and.ellipse", selection: $settings.prefs.tmdbRegion,
                                           options: LanguageOptions.regions.map { ($0.code, $0.name) })
                     }

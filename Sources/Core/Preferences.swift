@@ -183,7 +183,8 @@ struct LiveAccountState: Codable, Equatable {
 /// New fields can be added freely: missing keys fall back to their defaults.
 struct Preferences: Codable, Equatable {
     // Content
-    var tmdbLanguage = "en-GB"
+    /// The language of TMDB titles and descriptions; "" follows Tellio's own language.
+    var catalogueLanguage = ""
     var tmdbRegion = "GB"
 
     // Playback
@@ -314,10 +315,15 @@ struct Preferences: Codable, Equatable {
 
     /// Saved preferences (or a backup's), with defaults for keys they don't have.
     static func decode(_ data: Data) -> Preferences? {
-        guard let saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        guard var saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let defaultsData = try? JSONEncoder().encode(Preferences()),
               let defaults = try? JSONSerialization.jsonObject(with: defaultsData) as? [String: Any] else {
             return nil
+        }
+        // Before Tellio had its own language, TMDB's started as English (UK). A language someone
+        // picked carries over; the old default now follows Tellio's language.
+        if saved["catalogueLanguage"] == nil, let old = saved["tmdbLanguage"] as? String, old != "en-GB" {
+            saved["catalogueLanguage"] = old
         }
         // Saved values win; keys added in newer versions keep their defaults.
         let merged = defaults.merging(saved) { _, saved in saved }
@@ -326,6 +332,11 @@ struct Preferences: Codable, Equatable {
             return nil
         }
         return prefs
+    }
+
+    /// The TMDB language to ask for.
+    var catalogueLanguageInUse: String {
+        catalogueLanguage.isEmpty ? LanguageOptions.catalogueForApp : catalogueLanguage
     }
 
     func save() {
@@ -358,6 +369,23 @@ enum LanguageOptions {
     static var regions: [Choice] {
         ["GB", "IE", "US", "PT", "BR", "ES", "FR", "DE", "IT", "NL"]
             .map { Choice($0, displayLocale.localizedString(forRegionCode: $0) ?? $0) }
+    }
+
+    /// The catalogue language choices, starting with following Tellio.
+    static var catalogue: [(String, String)] {
+        [("", String(localized: "Same as Tellio"))] + tmdb.map { ($0.code, $0.name) }
+    }
+
+    /// The TMDB language that matches the language Tellio is shown in.
+    static var catalogueForApp: String {
+        switch Bundle.main.preferredLocalizations.first ?? "en" {
+        case "es": return "es-ES"
+        case "de": return "de-DE"
+        case "fr": return "fr-FR"
+        case "pt-PT": return "pt-PT"
+        case "pl": return "pl-PL"
+        default: return "en-GB"
+        }
     }
 
     /// The language Tellio's own text is in (English when the Apple TV's language isn't one Tellio has).

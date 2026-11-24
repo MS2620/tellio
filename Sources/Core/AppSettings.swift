@@ -116,7 +116,7 @@ final class AppSettings: ObservableObject {
     }
 
     var tmdb: TMDBClient {
-        TMDBClient(token: tmdbToken, language: prefs.tmdbLanguage, region: prefs.tmdbRegion)
+        TMDBClient(token: tmdbToken, language: prefs.catalogueLanguageInUse, region: prefs.tmdbRegion)
     }
 
     var xtreamClient: XtreamClient {

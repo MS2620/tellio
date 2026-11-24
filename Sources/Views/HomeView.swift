@@ -228,7 +228,7 @@ struct CatalogView: View {
     // MARK: Banner on open
 
     private var defaultHeroKey: String {
-        "\(mode)|\(settings.tmdbToken.count)|\(settings.prefs.tmdbLanguage)|\(settings.homeRowOrder.map(\.rawValue))"
+        "\(mode)|\(settings.tmdbToken.count)|\(settings.prefs.catalogueLanguageInUse)|\(settings.homeRowOrder.map(\.rawValue))"
     }
 
     private func myListItems(_ kind: MediaType?) -> [TMDBItem] {
@@ -388,7 +388,7 @@ private struct LazyRail: View {
     @State private var items: [TMDBItem]?
 
     private var reloadKey: String {
-        settings.tmdbToken + settings.prefs.tmdbLanguage + settings.prefs.tmdbRegion
+        settings.tmdbToken + settings.prefs.catalogueLanguageInUse + settings.prefs.tmdbRegion
     }
 
     var body: some View {
