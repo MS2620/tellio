@@ -35,7 +35,15 @@ Tellio isn't on the App Store. There are two ways to install it:
 - **[Signulous](https://www.signulous.com)** (paid, about $16 a year for an Apple TV): register your Apple TV with *tvOS Code Signing*, upload **Tellio.ipa** from the latest [release](https://github.com/MS2620/tellio/releases) with every option left unticked, and install. No computer needed at home.
 - **[atvloadly](https://github.com/bitxeno/atvloadly)** (free): runs in Docker on a Linux computer, Raspberry Pi or NAS at home, signs Tellio with a spare Apple ID and keeps it signed.
 
-The [install guide](https://ms2620.github.io/tellio-site/install.html) walks through both, with troubleshooting. Tellio tells you when a newer build is out; install it over the old one and your settings are kept.
+**Sideloaders that read AltStore sources** (such as ATVLoadly and FlareStore) can add this one to install Tellio and get each new build as an update:
+
+```
+https://raw.githubusercontent.com/MS2620/tellio/altstore/altstore-tvos.json
+```
+
+It lists the 10 newest builds and is updated after each one is published. For iPhone and iPad, see [Tellio for iPhone and iPad](https://github.com/MS2620/tellio-iOS#install).
+
+The [install guide](https://ms2620.github.io/tellio-site/install.html) walks through Signulous and atvloadly, with troubleshooting. Tellio tells you when a newer build is out; install it over the old one and your settings are kept.
 
 ## Known limitations
 
