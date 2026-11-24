@@ -572,8 +572,8 @@ struct FixtureDetailView: View {
         .confirmationDialog(choosingSource?.title ?? "", isPresented: Binding(
             get: { choosingSource != nil }, set: { if !$0 { choosingSource = nil } }
         ), titleVisibility: .visible, presenting: choosingSource) { group in
-            ForEach(group.hits) { hit in
-                Button("\(hit.addonName) · \(hit.stream.headline)") { playAddon(hit) }
+            ForEach(Array(group.hits.enumerated()), id: \.element.id) { index, hit in
+                Button(hit.chooserLabel(number: index + 1)) { playAddon(hit) }
             }
             Button("Cancel", role: .cancel) {}
         }
@@ -656,10 +656,12 @@ struct FixtureDetailView: View {
                         note("Not found in your addons. Addons that list live games or channels are searched by the team names and the channels showing it.")
                     }
                 }
-                ForEach(AddonSports.grouped(addonHits.filter { $0.kind != .sportChannel })) { group in
+                let sections = AddonSports.sections(addonHits)
+                ForEach(sections.matches) { group in
                     addonRow(group)
                 }
-                let maybe = AddonSports.grouped(addonHits.filter { $0.kind == .sportChannel })
+                // Only when nothing names the game: channels for its sport that may be showing it.
+                let maybe = sections.maybe
                 if !maybe.isEmpty {
                     Text("CHANNELS FOR THIS SPORT · MAY BE SHOWING IT")
                         .font(.system(size: 18, weight: .bold))
@@ -677,7 +679,7 @@ struct FixtureDetailView: View {
         }
     }
 
-    /// One source plays straight away; several (the same thing from different addons) are chosen from first.
+    /// One source plays straight away; several (from different addons, or one addon's streams) are chosen from first.
     private func addonRow(_ group: AddonSportsGroup) -> some View {
         Button {
             if group.hits.count > 1 { choosingSource = group } else { playAddon(group.first) }
