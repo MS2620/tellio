@@ -594,19 +594,34 @@ struct FixtureDetailView: View {
                         note("Not found in your addons. Addons that list live games or channels are searched by the team names and the channels showing it.")
                     }
                 }
-                ForEach(addonHits) { hit in
-                    Button {
-                        playAddon(hit)
-                    } label: {
-                        ListRowLabel(title: hit.title,
-                                     subtitle: [hit.stream.headline, hit.addonName].joined(separator: " · "),
-                                     icon: hit.kind == .game ? "sportscourt" : "tv",
-                                     trailing: String(localized: "Watch"))
+                ForEach(addonHits.filter { $0.kind != .sportChannel }) { hit in
+                    addonRow(hit)
+                }
+                let maybe = addonHits.filter { $0.kind == .sportChannel }
+                if !maybe.isEmpty {
+                    Text("CHANNELS FOR THIS SPORT · MAY BE SHOWING IT")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.6))
+                        .padding(.horizontal, 18)
+                        .padding(.top, 10)
+                    ForEach(maybe) { hit in
+                        addonRow(hit)
                     }
-                    .buttonStyle(PlainPressStyle())
                 }
             }
         }
+    }
+
+    private func addonRow(_ hit: AddonSportsHit) -> some View {
+        Button {
+            playAddon(hit)
+        } label: {
+            ListRowLabel(title: hit.title,
+                         subtitle: [hit.stream.headline, hit.addonName].joined(separator: " · "),
+                         icon: hit.kind == .game ? "sportscourt" : "tv",
+                         trailing: String(localized: "Watch"))
+        }
+        .buttonStyle(PlainPressStyle())
     }
 
     private func searchAddons() async {

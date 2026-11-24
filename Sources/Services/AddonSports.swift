@@ -6,7 +6,9 @@ import Foundation
 /// channels Tellio found it on in the TV guide. Only catalogues that aren't movies or series
 /// are read.
 struct AddonSportsHit: Identifiable {
-    enum Kind { case game, channel }
+    /// The game itself; a channel showing it; or a channel from the addon's list for the
+    /// game's sport, which may be showing it (shown last, when nothing else says so).
+    enum Kind { case game, channel, sportChannel }
 
     let id: String
     let addonName: String
@@ -35,8 +37,15 @@ enum AddonSports {
         }
         // Games first (they are the match itself), then channels; addon order within each.
         let order = Dictionary(addons.enumerated().map { ($0.element.name, $0.offset) }, uniquingKeysWith: { a, _ in a })
+        func rank(_ kind: AddonSportsHit.Kind) -> Int {
+            switch kind {
+            case .game: return 0
+            case .channel: return 1
+            case .sportChannel: return 2
+            }
+        }
         return hits.sorted { a, b in
-            if a.kind != b.kind { return a.kind == .game }
+            if a.kind != b.kind { return rank(a.kind) < rank(b.kind) }
             return (order[a.addonName] ?? 0) < (order[b.addonName] ?? 0)
         }
     }
@@ -81,6 +90,18 @@ enum AddonSports {
             }
         }
 
+        // A list for the game's sport ("Cricket") whose channels may be showing it: offered
+        // after any real matches, leaving out other games it lists.
+        let sportLists = catalogues.filter { isFor(sport: fixture, $0) && !$0.needsExtra }
+        var offered = 0
+        for catalogue in sportLists where offered < 6 {
+            let metas = (try? await client.catalog(type: catalogue.type, id: catalogue.id, search: nil)) ?? []
+            for meta in metas where offered < 6 && found[meta.id] == nil && !GuideText.hasVersus(meta.name ?? "") {
+                found[meta.id] = (meta, .sportChannel)
+                offered += 1
+            }
+        }
+
         var hits: [AddonSportsHit] = []
         await withTaskGroup(of: [AddonSportsHit].self) { group in
             for (id, entry) in found.prefix(12) {
@@ -108,6 +129,27 @@ enum AddonSports {
     }
 
     // MARK: Matching
+
+    /// Whether a catalogue is the addon's list for the fixture's sport, by its name or id.
+    private static func isFor(sport fixture: Fixture, _ catalogue: AddonCatalogue) -> Bool {
+        let sport = fixture.id.split(separator: "-").first.map(String.init) ?? ""
+        let words: [String]
+        switch sport {
+        case "soccer": words = ["football", "soccer"]
+        case "cricket": words = ["cricket"]
+        case "rugby", SuperLeagueClient.sport: words = ["rugby"]
+        case "football": words = ["american football", "nfl"]
+        case "basketball": words = ["basketball", "nba"]
+        case "hockey": words = ["hockey", "nhl"]
+        case "baseball": words = ["baseball", "mlb"]
+        case "f1": words = ["motor", "f1", "formula"]
+        default: return false
+        }
+        let text = GuideText.normalize((catalogue.name ?? "") + " " + catalogue.id.replacingOccurrences(of: "_", with: " "))
+        // Football's list isn't American football's.
+        if sport == "soccer" && text.contains(" american ") { return false }
+        return words.contains { text.contains(" " + $0 + " ") }
+    }
 
     /// Each team's names, normalized: the full name first, then shorter ones.
     private static func teamNames(_ fixture: Fixture) -> [(home: [String], away: [String])] {

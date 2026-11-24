@@ -6020,6 +6020,40 @@
         }
       }
     },
+    "CHANNELS FOR THIS SPORT · MAY BE SHOWING IT" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANALES DE ESTE DEPORTE · PUEDEN EMITIRLO"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SENDER FÜR DIESE SPORTART · ZEIGEN ES VIELLEICHT"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CHAÎNES DE CE SPORT · LE DIFFUSENT PEUT-ÊTRE"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CANAIS DESTE DESPORTO · PODEM ESTAR A TRANSMITIR"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KANAŁY TEGO SPORTU · MOGĄ TO POKAZYWAĆ"
+          }
+        }
+      }
+    },
     "Channels showing this will appear here once it's listed — usually a day or two before." : {
       "localizations" : {
         "es" : {
