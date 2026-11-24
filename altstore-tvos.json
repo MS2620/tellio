@@ -3,7 +3,7 @@
   "identifier": "io.github.ms2620.tellio",
   "subtitle": "A free player for your own addons and IPTV account.",
   "website": "https://github.com/MS2620/tellio",
-  "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/master/Resources/AppIcon.png",
+  "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/main/Resources/AppIcon.png",
   "tintColor": "6E5BFF",
   "apps": [
     {
@@ -12,11 +12,21 @@
       "developerName": "MS2620",
       "subtitle": "A free player for your own addons and IPTV account.",
       "localizedDescription": "Tellio plays what you bring: your IPTV provider's login or M3U playlist for live TV, and your addons for films and series. On top of that it adds artwork, a proper TV guide, sports with live scores, Top Shelf, Trakt sync and more.\n\nTellio doesn't include any channels, films or streams. It only plays what your own IPTV account and addons provide.",
-      "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/master/Resources/AppIcon.png",
+      "iconURL": "https://raw.githubusercontent.com/MS2620/tellio-iOS/main/Resources/AppIcon.png",
       "tintColor": "6E5BFF",
       "category": "entertainment",
       "screenshots": [],
       "versions": [
+        {
+          "version": "0.1.83",
+          "buildVersion": "83",
+          "date": "2026-11-24T15:01:33Z",
+          "localizedDescription": "Merge pull request #5 from MS2620/altstore-icon\n\nPoint the AltStore source's icon at main\n\n---\nThird-party components in this build:\n- https://github.com/superuser404notfound/AetherEngine @ 7.67.1\n- https://github.com/superuser404notfound/FFmpegBuild @ 3.15.0\n- https://github.com/superuser404notfound/LibDovi @ 2.2.0\n- https://github.com/getsentry/sentry-cocoa @ 9.34.0\n- https://github.com/kishikawakatsumi/SMBClient @ 0.3.1",
+          "downloadURL": "https://github.com/MS2620/tellio/releases/download/build-83/Tellio.ipa",
+          "size": 16992575,
+          "sha256": "2ee1995272cfba5070ad9bc11e8ac230663a42ddb636ed5701ab29cca8fc787e",
+          "minOSVersion": "18.0"
+        },
         {
           "version": "0.1.81",
           "buildVersion": "81",
