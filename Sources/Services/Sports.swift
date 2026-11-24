@@ -42,6 +42,9 @@ enum SportsCatalog {
         SportLeague(sport: "rugby", slug: "164205", name: "Rugby World Cup"),
     ]
 
+    /// Rugby league, shown under Rugby in Browse by league (from TheSportsDB, not ESPN).
+    static let rugbyLeague: [SportLeague] = [SuperLeagueClient.league]
+
     static let us: [SportLeague] = [
         SportLeague(sport: "football", slug: "nfl", name: "NFL"),
         SportLeague(sport: "basketball", slug: "nba", name: "NBA"),
@@ -94,8 +97,12 @@ struct Fixture: Identifiable, Hashable {
     /// ESPN's event ID and the league scoreboard that lists it, for live score updates.
     var eventID: String? = nil
     var scoreboardPath: String? = nil
+    /// When a game that runs for days (a cricket Test) is due to end; nil for the rest.
+    var endDate: Date? = nil
 
     var isRace: Bool { !sessions.isEmpty }
+    /// Kick-off, or the last day of a game that runs for several.
+    var lastsUntil: Date { max(date, endDate ?? date) }
 
     /// When to look for it in the TV guide: the next F1 session, or kick-off.
     var guideTime: Date {
@@ -187,6 +194,17 @@ struct ESPNTeam: Decodable, Hashable {
     }
 
     private struct Logo: Decodable { let href: String? }
+
+    /// A team from somewhere other than ESPN's team lists (cricket, the Super League).
+    init(id: String, displayName: String, shortDisplayName: String? = nil, location: String? = nil,
+         logoURL: String? = nil, color: String? = nil) {
+        self.id = id
+        self.displayName = displayName
+        self.shortDisplayName = shortDisplayName
+        self.location = location
+        self.logoURL = logoURL
+        self.color = color
+    }
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -400,13 +418,15 @@ struct ESPNClient {
     }
 
     func teams(in league: SportLeague) async throws -> [ESPNTeam] {
+        if league.sport == "cricket" { return await CricketClient().teams(in: league) }
+        if league.sport == SuperLeagueClient.sport { return try await SuperLeagueClient().teams() }
         let response = try await fetch(ESPNTeamsResponse.self, "/sports/\(league.sport)/\(league.slug)/teams?limit=500")
         let teams = response.sports?.first?.leagues?.first?.teams?.map(\.team) ?? []
         return teams.sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
     }
 
     /// Sports the app can show fixtures for, as ESPN names them.
-    static let supportedSports: Set<String> = ["soccer", "football", "basketball", "hockey", "baseball", "rugby"]
+    static let supportedSports: Set<String> = ["soccer", "football", "basketball", "hockey", "baseball", "rugby", "cricket"]
 
     /// Searches every team ESPN knows, across sports and leagues.
     func searchTeams(_ query: String) async throws -> [TeamSearchResult] {
@@ -430,7 +450,7 @@ struct ESPNClient {
                   Self.supportedSports.contains(sport) else { return nil }
             let league = item.defaultLeagueSlug ?? item.league ?? ""
             // US sports need the league to look up a schedule.
-            if league.isEmpty && sport != "soccer" && sport != "rugby" { return nil }
+            if league.isEmpty && sport != "soccer" && sport != "rugby" && sport != "cricket" { return nil }
             let result = TeamSearchResult(sport: sport, league: league, teamID: id, name: name,
                                           logo: item.logos?.compactMap(\.href).first, color: item.color)
             return seen.insert(result.id).inserted ? result : nil
@@ -493,7 +513,7 @@ struct ESPNClient {
     static func window(_ fixtures: [Fixture], days: Int) -> [Fixture] {
         let from = Date().addingTimeInterval(-5 * 3600)
         let until = Date().addingTimeInterval(TimeInterval(days) * 86_400)
-        return fixtures.filter { $0.date > from && $0.date <= until }.sorted { $0.date < $1.date }
+        return fixtures.filter { $0.lastsUntil > from && $0.date <= until }.sorted { $0.date < $1.date }
     }
 
     /// Builds a fixture if any of `teams` is playing in the event.
@@ -580,11 +600,11 @@ struct ESPNClient {
     /// Current scores for games under way, from each league's scoreboard (one request per league).
     func liveScores(for fixtures: [Fixture]) async -> [String: FixtureScore] {
         var groups: [String: [Fixture]] = [:]
-        for fixture in fixtures {
+        for fixture in fixtures where fixture.scoreboardPath != CricketClient.scorePath {
             guard let path = fixture.scoreboardPath, fixture.eventID != nil else { continue }
             groups[path, default: []].append(fixture)
         }
-        var result: [String: FixtureScore] = [:]
+        var result = await CricketClient().liveScores(for: fixtures.filter { $0.scoreboardPath == CricketClient.scorePath })
         await withTaskGroup(of: [String: FixtureScore].self) { group in
             for (path, list) in groups {
                 let dates = list.map(\.date)
@@ -615,15 +635,25 @@ enum SportsLoader {
         guard !teams.isEmpty else { return [] }
         let espn = ESPNClient()
         let rugby = teams.filter { $0.sport == "rugby" }
+        let cricket = teams.filter { $0.sport == "cricket" }
+        let rugbyLeague = teams.filter { $0.sport == SuperLeagueClient.sport }
         let f1Names = teams.filter(\.isF1).map(\.name)
         var found: [Fixture] = []
 
+        // Cricket and the Super League have their own sources; the rest are read from ESPN per team.
+        let ownSources: Set<String> = ["rugby", "cricket", SuperLeagueClient.sport]
         await withTaskGroup(of: [Fixture].self) { group in
-            for team in teams where !team.isF1 && team.sport != "rugby" {
+            for team in teams where !team.isF1 && !ownSources.contains(team.sport) {
                 group.addTask { await espn.upcomingFixtures(for: team, days: days) }
             }
             if !rugby.isEmpty {
                 group.addTask { await espn.rugbyFixtures(for: rugby, days: days) }
+            }
+            if !cricket.isEmpty {
+                group.addTask { await CricketClient().fixtures(for: cricket, days: days) }
+            }
+            if !rugbyLeague.isEmpty {
+                group.addTask { await SuperLeagueClient().fixtures(for: rugbyLeague, days: days) }
             }
             if !f1Names.isEmpty {
                 group.addTask {

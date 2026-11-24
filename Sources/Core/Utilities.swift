@@ -36,6 +36,11 @@ extension String {
         allowed.insert(charactersIn: "-._~")
         return addingPercentEncoding(withAllowedCharacters: allowed) ?? self
     }
+
+    /// Safe as one piece of a URL path: spaces and slashes are escaped, ":" (in episode ids) is kept.
+    var pathEncoded: String {
+        addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(CharacterSet(charactersIn: "/?#"))) ?? self
+    }
 }
 
 /// Xtream Codes panels are inconsistent about whether IDs are strings or numbers.

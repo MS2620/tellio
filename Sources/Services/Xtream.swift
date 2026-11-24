@@ -9,6 +9,11 @@ struct XtreamCategory: Decodable, Identifiable, Hashable {
         case categoryName = "category_name"
     }
 
+    init(id: String, name: String) {
+        self.id = id
+        self.name = name
+    }
+
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = c.flexString(.categoryID) ?? ""
@@ -218,6 +223,12 @@ struct XtreamClient {
 
     /// The account's state as the provider reports it.
     func accountInfo() async throws -> XtreamAccountInfo {
+        if account.isM3U {
+            // A playlist has no login: it works if it lists channels.
+            let playlist = try await m3u()
+            return XtreamAccountInfo(signedIn: !playlist.entries.isEmpty,
+                                     status: playlist.entries.isEmpty ? String(localized: "No channels") : "Active")
+        }
         let data = try await api(nil)
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let user = json["user_info"] as? [String: Any] else {
@@ -251,15 +262,26 @@ struct XtreamClient {
     }
 
     func liveCategories() async throws -> [XtreamCategory] {
-        try JSONDecoder().decode([XtreamCategory].self, from: try await api("get_live_categories"))
+        if account.isM3U { return try await m3u().groups.map { XtreamCategory(id: $0, name: $0) } }
+        return try JSONDecoder().decode([XtreamCategory].self, from: try await api("get_live_categories"))
     }
 
     func liveStreams(categoryID: String?) async throws -> [XtreamChannel] {
+        if account.isM3U {
+            return try await m3u().entries
+                .filter { categoryID == nil || $0.group == categoryID }
+                .map { XtreamChannel(id: $0.id, number: $0.number, name: $0.name, icon: $0.logo,
+                                     categoryID: $0.group, epgChannelID: $0.guideID) }
+        }
         let extra = categoryID.map { ["category_id": $0] } ?? [:]
         return try JSONDecoder().decode([XtreamChannel].self, from: try await api("get_live_streams", extra))
     }
 
     func shortEPG(streamID: Int, limit: Int = 4) async throws -> [XtreamEPGEntry] {
+        if account.isM3U {
+            let from = Date()
+            return Array(await m3uListings(streamID: streamID).filter { ($0.end ?? .distantPast) > from }.prefix(limit))
+        }
         let data = try await api("get_short_epg", ["stream_id": String(streamID), "limit": String(limit)])
         return try JSONDecoder().decode(ShortEPGResponse.self, from: data).epgListings
     }
@@ -281,11 +303,14 @@ struct XtreamClient {
     // MARK: Provider library (VOD)
 
     func vodStreams() async throws -> [XtreamVOD] {
-        try JSONDecoder().decode([XtreamVOD].self, from: try await api("get_vod_streams"))
+        // Playlists are read for live channels only.
+        if account.isM3U { return [] }
+        return try JSONDecoder().decode([XtreamVOD].self, from: try await api("get_vod_streams"))
     }
 
     func seriesList() async throws -> [XtreamSeries] {
-        try JSONDecoder().decode([XtreamSeries].self, from: try await api("get_series"))
+        if account.isM3U { return [] }
+        return try JSONDecoder().decode([XtreamSeries].self, from: try await api("get_series"))
     }
 
     /// Episodes of a provider series, sorted by season then episode.
@@ -356,9 +381,33 @@ struct XtreamClient {
     }
 
     func liveURL(for channel: XtreamChannel, format: LiveStreamFormat = .hls) -> URL? {
+        // A playlist gives each channel's link as it is; the format setting doesn't apply.
+        if account.isM3U { return M3ULinks.shared.entry(channel.id, in: account.playlistURL)?.url }
         let user = account.username.formEncoded
         let pass = account.password.formEncoded
         return URL(string: "\(account.normalizedServer)/live/\(user)/\(pass)/\(channel.id).\(format.fileExtension)")
+    }
+}
+
+// MARK: - M3U playlists
+
+extension XtreamClient {
+    func m3u() async throws -> M3UPlaylist {
+        try await M3UPlaylists.shared.playlist(account, headers: requestHeaders)
+    }
+
+    /// The guide link entered with the account, or else the one the playlist names.
+    func m3uGuideURL() async -> URL? {
+        let typed = account.guideURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !typed.isEmpty { return URL(string: typed) }
+        return (try? await m3u())?.guideURL
+    }
+
+    /// A playlist channel's listings, from the guide file, by the channel's tvg-id.
+    func m3uListings(streamID: Int) async -> [XtreamEPGEntry] {
+        if M3ULinks.shared.entry(streamID, in: account.playlistURL) == nil { _ = try? await m3u() }
+        guard let guideID = M3ULinks.shared.entry(streamID, in: account.playlistURL)?.guideID else { return [] }
+        return await M3UGuide.shared.entries(self, guideID: guideID)
     }
 }
 
@@ -390,7 +439,7 @@ actor XtreamCache {
     }
 
     private func accountKey(_ client: XtreamClient) -> String {
-        client.account.normalizedServer + "|" + client.account.username
+        client.account.cacheKey
     }
 
     /// Guide listings already downloaded this session, by channel, for searching.
@@ -487,6 +536,12 @@ actor XtreamCache {
     /// Never throws: a channel whose guide can't be read just has no listings.
     func fullEPG(_ client: XtreamClient, streamID: Int) async -> [XtreamEPGEntry] {
         let cacheKey = accountKey(client) + "|\(streamID)"
+        // A playlist's guide is one file, already kept by M3UGuide.
+        if client.account.isM3U {
+            let entries = await client.m3uListings(streamID: streamID)
+            guides[cacheKey] = (Date(), entries)
+            return entries
+        }
         if let cached = guides[cacheKey], isFresh(cached.date) {
             return cached.value
         }
@@ -526,7 +581,8 @@ actor XtreamCache {
     }
 
     /// Forgets all guide data so it is downloaded again.
-    func clearGuide() {
+    func clearGuide() async {
+        await M3UGuide.shared.clear()
         guides.removeAll()
         failures.removeAll()
         if let folder = Self.guideFolder {

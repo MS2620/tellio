@@ -6,7 +6,56 @@ struct AddonManifest: Decodable {
     let version: String?
     let description: String?
     let types: [String]?
+    let catalogs: [AddonCatalogue]?
+
+    private enum CodingKeys: String, CodingKey { case id, name, version, description, types, catalogs }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        version = try? c.decode(String.self, forKey: .version)
+        description = try? c.decode(String.self, forKey: .description)
+        types = try? c.decode([String].self, forKey: .types)
+        // One odd catalogue shouldn't make the whole addon unreadable.
+        catalogs = (try? c.decode([Lossy<AddonCatalogue>].self, forKey: .catalogs))?.compactMap(\.value)
+    }
 }
+
+/// A list an addon offers, e.g. live channels or today's games.
+struct AddonCatalogue: Decodable {
+    struct Extra: Decodable {
+        let name: String
+        let isRequired: Bool?
+    }
+
+    let type: String
+    let id: String
+    let name: String?
+    let extra: [Extra]?
+    /// The older way of listing extras.
+    let extraSupported: [String]?
+    let extraRequired: [String]?
+
+    var supportsSearch: Bool {
+        (extra ?? []).contains { $0.name == "search" } || (extraSupported ?? []).contains("search")
+    }
+
+    /// Reading it needs a search or filter, so it can't be listed whole.
+    var needsExtra: Bool {
+        (extra ?? []).contains { $0.isRequired == true } || !(extraRequired ?? []).isEmpty
+    }
+}
+
+/// An entry in a catalogue.
+struct StremioMeta: Decodable {
+    let id: String
+    let type: String?
+    let name: String?
+    let description: String?
+}
+
+private struct CatalogResponse: Decodable { let metas: [Lossy<StremioMeta>]? }
 
 /// A stream object as defined by the Stremio addon protocol.
 struct StremioStream: Decodable, Hashable {
@@ -16,6 +65,15 @@ struct StremioStream: Decodable, Hashable {
     let url: String?
     /// Set on torrent-only results. Tellio can't play those, so they are skipped.
     let infoHash: String?
+    let behaviorHints: BehaviorHints?
+
+    struct BehaviorHints: Decodable, Hashable {
+        struct ProxyHeaders: Decodable, Hashable { let request: [String: String]? }
+        let proxyHeaders: ProxyHeaders?
+    }
+
+    /// Headers the addon says the link needs (live sports links often want a Referer).
+    var requestHeaders: [String: String] { behaviorHints?.proxyHeaders?.request ?? [:] }
 
     /// A direct web link the player can open, if the addon gave one.
     var playableURL: URL? {
@@ -113,11 +171,22 @@ struct StremioAddonClient {
     ///   - type: "movie" or "series"
     ///   - id: IMDb id, e.g. "tt0111161" or "tt0903747:1:1" for an episode
     func streams(type: String, id: String) async throws -> [StremioStream] {
-        guard let url = URL(string: "\(base)/stream/\(type)/\(id).json") else { throw URLError(.badURL) }
+        guard let url = URL(string: "\(base)/stream/\(type)/\(id.pathEncoded).json") else { throw URLError(.badURL) }
         var request = URLRequest(url: url)
         request.timeoutInterval = 20
         let data = try await URLSession.shared.fetch(request)
         return try JSONDecoder().decode(StreamResponse.self, from: data).streams
+    }
+
+    /// A catalogue's entries, or those matching `search` when the catalogue can search.
+    func catalog(type: String, id: String, search: String?) async throws -> [StremioMeta] {
+        var path = "\(base)/catalog/\(type.pathEncoded)/\(id.pathEncoded)"
+        if let search { path += "/search=\(search.pathEncoded)" }
+        guard let url = URL(string: path + ".json") else { throw URLError(.badURL) }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 15
+        let data = try await URLSession.shared.fetch(request)
+        return (try JSONDecoder().decode(CatalogResponse.self, from: data).metas ?? []).compactMap(\.value)
     }
 
     /// Subtitles for a movie or episode. Addons without subtitles answer with an error, which callers ignore.
