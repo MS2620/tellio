@@ -27,14 +27,14 @@ struct UpdateCard: View {
                         Button {
                             showingNotes = true
                         } label: {
-                            CardButtonLabel(title: "What's new", compact: true)
+                            CardButtonLabel(title: String(localized: "What's new"), compact: true)
                         }
                         .buttonStyle(PlainPressStyle())
                         .focused($focused, equals: 0)
                         Button {
                             checker.dismissCard()
                         } label: {
-                            CardButtonLabel(title: "Later", compact: true)
+                            CardButtonLabel(title: String(localized: "Later"), compact: true)
                         }
                         .buttonStyle(PlainPressStyle())
                         .focused($focused, equals: 1)
@@ -75,7 +75,7 @@ struct UpdateNotes: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 Text(release.title).font(.system(size: 40, weight: .heavy))
-                Text(release.notes.isEmpty ? "No notes for this build." : release.notes)
+                Text(release.notes.isEmpty ? String(localized: "No notes for this build.") : release.notes)
                     .font(.system(size: 24))
                     .foregroundStyle(.white.opacity(0.85))
                 Text("Install it with atvloadly from the release on GitHub (MS2620/tellio, Releases).")

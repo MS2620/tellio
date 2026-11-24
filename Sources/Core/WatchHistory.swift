@@ -39,7 +39,7 @@ struct WatchEntry: Codable, Hashable, Identifiable {
     /// "23 min left", "1 h 12 min left".
     var timeLeftLabel: String {
         let minutes = max(Int((remaining / 60).rounded()), 1)
-        return minutes >= 60 ? "\(minutes / 60) h \(minutes % 60) min left" : "\(minutes) min left"
+        return minutes >= 60 ? String(localized: "\(minutes / 60) h \(minutes % 60) min left") : String(localized: "\(minutes) min left")
     }
 
     /// "S1 · E4".

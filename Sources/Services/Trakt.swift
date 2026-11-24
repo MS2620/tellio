@@ -174,14 +174,14 @@ struct TraktClient {
         switch status {
         case 200:
             if let tokens = try? JSONDecoder.snake.decode(TraktTokens.self, from: data) { return .approved(tokens) }
-            return .failed("Trakt sent an answer Tellio couldn't read.")
+            return .failed(String(localized: "Trakt sent an answer Tellio couldn't read."))
         case 400: return .pending
         case 429: return .slowDown
-        case 401, 403, 404: return .failed("Trakt didn't accept this sign-in. Check the Trakt app's client ID.")
-        case 409: return .failed("That code was already used. Start again.")
+        case 401, 403, 404: return .failed(String(localized: "Trakt didn't accept this sign-in. Check the Trakt app's client ID."))
+        case 409: return .failed(String(localized: "That code was already used. Start again."))
         case 410: return .expired
         case 418: return .denied
-        default: return .failed("Trakt answered \(status).")
+        default: return .failed(String(localized: "Trakt answered \(status)."))
         }
     }
 
@@ -379,7 +379,7 @@ final class TraktSync: ObservableObject {
         guard hasApp, var tokens else { return nil }
         if tokens.expiresAt < Date().addingTimeInterval(86_400) {
             guard let fresh = try? await api.refresh(tokens) else {
-                lastError = "Trakt sign-in expired. Sign in again."
+                lastError = String(localized: "Trakt sign-in expired. Sign in again.")
                 return nil
             }
             store(fresh)

@@ -187,7 +187,7 @@ struct XtreamAccountInfo: Equatable {
     /// "0 of 1 in use", when the provider says.
     var connectionsText: String? {
         guard let maxConnections else { return nil }
-        return "\(activeConnections ?? 0) of \(maxConnections) in use"
+        return String(localized: "\(activeConnections ?? 0) of \(maxConnections) in use")
     }
 }
 
@@ -221,14 +221,14 @@ struct XtreamClient {
         let data = try await api(nil)
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let user = json["user_info"] as? [String: Any] else {
-            return XtreamAccountInfo(signedIn: false, status: "Login failed")
+            return XtreamAccountInfo(signedIn: false, status: String(localized: "Login failed"))
         }
         func text(_ key: String) -> String? {
             guard let value = user[key], !(value is NSNull) else { return nil }
             return "\(value)"
         }
         guard text("auth") == "1" else {
-            return XtreamAccountInfo(signedIn: false, status: "Login failed")
+            return XtreamAccountInfo(signedIn: false, status: String(localized: "Login failed"))
         }
         return XtreamAccountInfo(
             signedIn: true,
@@ -245,7 +245,7 @@ struct XtreamClient {
         guard info.signedIn else { return info.status }
         var status = info.status
         if let expires = info.expires {
-            status += " · expires " + expires.formatted(date: .abbreviated, time: .omitted)
+            status += " · " + String(localized: "expires \(expires.formatted(date: .abbreviated, time: .omitted))")
         }
         return status
     }

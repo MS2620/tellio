@@ -33,7 +33,7 @@ struct SportsView: View {
                         NavigationLink {
                             TeamsManagerView()
                         } label: {
-                            PillLabel(title: "My Teams", icon: "star")
+                            PillLabel(title: String(localized: "My Teams"), icon: "star")
                         }
                         .buttonStyle(PlainPressStyle())
 
@@ -112,7 +112,7 @@ struct SportsView: View {
         }
     }
 
-    private func row<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+    private func row<Content: View>(_ title: LocalizedStringResource, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.title3).bold()
@@ -129,7 +129,7 @@ struct SportsView: View {
         }
     }
 
-    private func message(_ text: String) -> some View {
+    private func message(_ text: LocalizedStringResource) -> some View {
         Text(text)
             .foregroundStyle(.white.opacity(0.7))
             .padding(.horizontal, 90)
@@ -234,7 +234,7 @@ struct FixtureTile: View {
         }
         let session = fixture.sessions.first(where: { $0.date == fixture.guideTime })
         if fixture.isRace && isLive {
-            return "\(session?.name ?? "Race") in progress · \(fixture.competition)"
+            return String(localized: "\(session?.name ?? String(localized: "Race")) in progress · \(fixture.competition)")
         }
         var parts = ["\(DayFormat.label(fixture.guideTime)) \(DayFormat.time(fixture.guideTime))"]
         if let session { parts.append(session.name) }
@@ -245,10 +245,10 @@ struct FixtureTile: View {
     /// Top-left pill: kick-off time, LIVE, HT or FT.
     private var pill: (text: String, color: Color) {
         switch score?.phase {
-        case .finished: return (score?.clock ?? "FT", Color.black.opacity(0.6))
-        case .halfTime: return ("HT", Color.black.opacity(0.6))
-        case .live: return ("LIVE", Theme.live)
-        case nil: return isLive ? ("LIVE", Theme.live) : (DayFormat.time(fixture.guideTime), Color.black.opacity(0.5))
+        case .finished: return (score?.clock ?? String(localized: "FT"), Color.black.opacity(0.6))
+        case .halfTime: return (String(localized: "HT"), Color.black.opacity(0.6))
+        case .live: return (String(localized: "LIVE"), Theme.live)
+        case nil: return isLive ? (String(localized: "LIVE"), Theme.live) : (DayFormat.time(fixture.guideTime), Color.black.opacity(0.5))
         }
     }
 
@@ -292,8 +292,8 @@ struct ScoreBadge: View {
     private var caption: String {
         switch score.phase {
         case .live: return score.clock
-        case .halfTime: return "Half-time"
-        case .finished: return score.clock == "FT" ? "Full time" : score.clock
+        case .halfTime: return String(localized: "Half-time")
+        case .finished: return score.clock == "FT" ? String(localized: "Full time") : score.clock
         }
     }
 
@@ -361,8 +361,8 @@ private struct TeamTile: View {
     let next: Fixture?
 
     private var nextLine: String {
-        guard let next else { return "No fixture soon" }
-        return "Next: \(DayFormat.label(next.guideTime)) \(DayFormat.time(next.guideTime))"
+        guard let next else { return String(localized: "No fixture soon") }
+        return String(localized: "Next: \(DayFormat.label(next.guideTime)) \(DayFormat.time(next.guideTime))")
     }
 
     var body: some View {
@@ -435,7 +435,7 @@ struct FixtureDetailView: View {
                             .minimumScaleFactor(0.6)
                         if let score {
                             HStack(spacing: 12) {
-                                Text(score.phase == .live ? "● LIVE \(score.clock)" : score.clock)
+                                Text(score.phase == .live ? String(localized: "● LIVE \(score.clock)") : score.clock)
                                     .font(.system(size: 20, weight: .heavy))
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 5)
@@ -478,12 +478,12 @@ struct FixtureDetailView: View {
 
                 watchPanel
                 if !matches.isEmpty && !searching {
-                    SettingsNote([result.details, "Hidden groups and channels are skipped."]
+                    SettingsNote([result.details, String(localized: "Hidden groups and channels are skipped.")]
                         .compactMap { $0 }.joined(separator: " "))
                 }
 
                 if !fixture.broadcasts.isEmpty {
-                    Text("Listed broadcasters: " + fixture.broadcasts.joined(separator: ", "))
+                    Text("Listed broadcasters: \(fixture.broadcasts.joined(separator: ", "))")
                         .font(.system(size: 20, weight: .medium))
                         .foregroundStyle(.white.opacity(0.6))
                         .padding(.horizontal, 20)
@@ -505,8 +505,8 @@ struct FixtureDetailView: View {
     }
 
     private var progressText: String {
-        guard let entry, entry.total > 0 else { return "Searching your TV guide…" }
-        return "Checking channels… \(entry.checked) of \(entry.total)"
+        guard let entry, entry.total > 0 else { return String(localized: "Searching your TV guide…") }
+        return String(localized: "Checking channels… \(entry.checked) of \(entry.total)")
     }
 
     /// "Portugal – Denmark" (ESPN writes "Portugal v Denmark"), or "Portugal 2 – 1 Denmark" once started.
@@ -519,7 +519,7 @@ struct FixtureDetailView: View {
 
     /// "Saturday, 14 November at 19:45".
     private var dateLine: String {
-        fixture.guideTime.formatted(.dateTime.weekday(.wide).day().month(.wide)) + " at " + DayFormat.time(fixture.guideTime)
+        String(localized: "\(fixture.guideTime.formatted(.dateTime.weekday(.wide).day().month(.wide))) at \(DayFormat.time(fixture.guideTime))")
     }
 
     /// Every channel showing the match, edge to edge with dividers, like NOWseen.
@@ -567,7 +567,7 @@ struct FixtureDetailView: View {
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
     }
 
-    private func note(_ text: String) -> some View {
+    private func note(_ text: LocalizedStringResource) -> some View {
         Text(text)
             .font(.system(size: 24, weight: .medium))
             .foregroundStyle(.white.opacity(0.7))
@@ -608,13 +608,13 @@ struct FixtureDetailView: View {
                 Button {
                     search(force: true)
                 } label: {
-                    PillLabel(title: "Check again", icon: "arrow.clockwise")
+                    PillLabel(title: String(localized: "Check again"), icon: "arrow.clockwise")
                 }
                 .buttonStyle(PlainPressStyle())
                 Button {
                     showingSportsChannels = true
                 } label: {
-                    PillLabel(title: "Open sports channels", icon: "antenna.radiowaves.left.and.right")
+                    PillLabel(title: String(localized: "Open sports channels"), icon: "antenna.radiowaves.left.and.right")
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -634,10 +634,12 @@ struct FixtureDetailView: View {
 
     private var notFoundDetail: String {
         if notListedYet {
-            let reach = result.guideEnds.map { "Your provider's guide reaches " + $0.formatted(.dateTime.weekday(.wide).day().month(.wide)) + ". " } ?? ""
-            return reach + "Channels showing this will appear here once it's listed — usually a day or two before."
+            let later = String(localized: "Channels showing this will appear here once it's listed — usually a day or two before.")
+            guard let ends = result.guideEnds else { return later }
+            let day = ends.formatted(.dateTime.weekday(.wide).day().month(.wide))
+            return String(localized: "Your provider's guide reaches \(day).") + " " + later
         }
-        return "None of your channels list it at that time. Listings can be added late, so try again closer to the start."
+        return String(localized: "None of your channels list it at that time. Listings can be added late, so try again closer to the start.")
     }
 
     /// "Liga das Nações - Portugal x Dinamarca (Direto) · 19:45–21:45 · Olyviax".
@@ -743,7 +745,7 @@ private struct SportsChannelsSheet: View {
                                     ListRowLabel(title: channel.name,
                                                  logoURL: channel.icon.flatMap { URL(string: $0) },
                                                  showsLogo: true,
-                                                 trailing: "Tune in")
+                                                 trailing: String(localized: "Tune in"))
                                 }
                                 .buttonStyle(PlainPressStyle())
                             }
@@ -775,7 +777,7 @@ private struct SportsChannelsSheet: View {
             url: url,
             title: channel.name,
             artworkURL: channel.icon.flatMap { URL(string: $0) },
-            sourceName: "Sports",
+            sourceName: String(localized: "Sports"),
             isLive: true,
             httpHeaders: client.requestHeaders,
             live: LiveContext(channels: channels, index: index)
@@ -793,10 +795,10 @@ private enum SportFilter: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .all: return "All"
-        case .football: return "Football"
-        case .f1: return "Formula 1"
-        case .rugby: return "Rugby"
+        case .all: return String(localized: "All")
+        case .football: return String(localized: "Football")
+        case .f1: return String(localized: "Formula 1")
+        case .rugby: return String(localized: "Rugby")
         case .nfl: return "NFL"
         case .nba: return "NBA"
         case .nhl: return "NHL"
@@ -867,19 +869,19 @@ struct TeamsManagerView: View {
                         NavigationLink {
                             FootballLeaguesView()
                         } label: {
-                            ListRowLabel(title: "Football", icon: "soccerball", trailingIcon: "chevron.right")
+                            ListRowLabel(title: String(localized: "Football"), icon: "soccerball", trailingIcon: "chevron.right")
                         }
                         .buttonStyle(PlainPressStyle())
                         NavigationLink {
                             F1TeamsView()
                         } label: {
-                            ListRowLabel(title: "Formula 1", icon: "flag.checkered", trailingIcon: "chevron.right")
+                            ListRowLabel(title: String(localized: "Formula 1"), icon: "flag.checkered", trailingIcon: "chevron.right")
                         }
                         .buttonStyle(PlainPressStyle())
                         NavigationLink {
-                            LeagueListView(title: "Rugby", leagues: SportsCatalog.rugby)
+                            LeagueListView(title: String(localized: "Rugby"), leagues: SportsCatalog.rugby)
                         } label: {
-                            ListRowLabel(title: "Rugby", icon: "figure.rugby", trailingIcon: "chevron.right")
+                            ListRowLabel(title: String(localized: "Rugby"), icon: "figure.rugby", trailingIcon: "chevron.right")
                         }
                         .buttonStyle(PlainPressStyle())
                         ForEach(SportsCatalog.us) { league in
@@ -937,7 +939,7 @@ struct TeamsManagerView: View {
                                              icon: result.sport == "f1" ? "flag.checkered" : nil,
                                              logoURL: result.logo.flatMap { URL(string: $0) },
                                              showsLogo: result.sport != "f1",
-                                             trailing: following ? "Following" : nil,
+                                             trailing: following ? String(localized: "Following") : nil,
                                              trailingIcon: following ? "checkmark" : "plus")
                             }
                             .buttonStyle(PlainPressStyle())
@@ -951,7 +953,7 @@ struct TeamsManagerView: View {
         .background(AppBackground())
         .task { await loadNames() }
         .task(id: trimmed) { await search() }
-        .confirmationDialog("Stop following \(removing?.name ?? "this team")?",
+        .confirmationDialog("Stop following \(removing?.name ?? String(localized: "this team"))?",
                             isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
                             titleVisibility: .visible) {
             Button("Stop following", role: .destructive) {
@@ -964,7 +966,7 @@ struct TeamsManagerView: View {
         }
     }
 
-    private func hint(_ text: String) -> some View {
+    private func hint(_ text: LocalizedStringResource) -> some View {
         Text(text)
             .font(.system(size: 22, weight: .medium))
             .foregroundStyle(.white.opacity(0.7))
@@ -1006,11 +1008,11 @@ struct TeamsManagerView: View {
     private func leagueName(_ result: TeamSearchResult) -> String {
         switch result.sport {
         case "f1":
-            return "Formula 1"
+            return String(localized: "Formula 1")
         case "soccer":
-            return leagueNames[result.league] ?? "Football"
+            return leagueNames[result.league] ?? String(localized: "Football")
         case "rugby":
-            return SportsCatalog.rugby.first { $0.slug == result.league }?.name ?? "Rugby"
+            return SportsCatalog.rugby.first { $0.slug == result.league }?.name ?? String(localized: "Rugby")
         default:
             return result.league.uppercased()
         }
@@ -1019,13 +1021,13 @@ struct TeamsManagerView: View {
     private func describe(_ result: TeamSearchResult) -> String {
         let sport: String
         switch result.sport {
-        case "f1": return "Formula 1"
-        case "soccer": sport = "Football"
-        case "rugby": sport = "Rugby"
-        case "football": sport = "American football"
-        case "basketball": sport = "Basketball"
-        case "hockey": sport = "Ice hockey"
-        case "baseball": sport = "Baseball"
+        case "f1": return String(localized: "Formula 1")
+        case "soccer": sport = String(localized: "Football")
+        case "rugby": sport = String(localized: "Rugby")
+        case "football": sport = String(localized: "American football")
+        case "basketball": sport = String(localized: "Basketball")
+        case "hockey": sport = String(localized: "Ice hockey")
+        case "baseball": sport = String(localized: "Baseball")
         default: sport = result.sport.capitalized
         }
         let league = leagueName(result)
@@ -1086,15 +1088,15 @@ private struct FootballLeaguesView: View {
             } else if leagues.isEmpty {
                 ProgressView()
             } else {
-                LeagueListView(title: "Football", leagues: leagues)
+                LeagueListView(title: String(localized: "Football"), leagues: leagues)
             }
         }
         .task {
             do {
                 leagues = try await ESPNClient().footballLeagues()
-                if leagues.isEmpty { error = "No leagues found." }
+                if leagues.isEmpty { error = String(localized: "No leagues found.") }
             } catch {
-                self.error = "Couldn't load leagues: \(error.localizedDescription)"
+                self.error = String(localized: "Couldn't load leagues: \(error.localizedDescription)")
             }
         }
     }
@@ -1144,7 +1146,7 @@ private struct TeamPickerView: View {
             do {
                 teams = try await ESPNClient().teams(in: league)
             } catch {
-                self.error = "Couldn't load teams: \(error.localizedDescription)"
+                self.error = String(localized: "Couldn't load teams: \(error.localizedDescription)")
             }
             loading = false
         }
@@ -1201,7 +1203,7 @@ private struct F1TeamsView: View {
             do {
                 constructors = try await F1Client().constructors()
             } catch {
-                self.error = "Couldn't load teams: \(error.localizedDescription)"
+                self.error = String(localized: "Couldn't load teams: \(error.localizedDescription)")
             }
             loading = false
         }

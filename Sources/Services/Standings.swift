@@ -190,8 +190,8 @@ struct StandingsClient {
                             points: s.points,
                             isFollowed: s.Constructors?.contains { matches($0.name) } ?? false)
             }
-            tabs.append(StandingTab(id: "f1-drivers", title: "F1 Drivers",
-                                    tables: [StandingTable(id: "f1-drivers", title: "Drivers' championship",
+            tabs.append(StandingTab(id: "f1-drivers", title: String(localized: "F1 Drivers"),
+                                    tables: [StandingTable(id: "f1-drivers", title: String(localized: "Drivers' championship"),
                                                            rows: rows, showsPlayedAndDifference: false)]))
         }
         if let list = try? await f1("/current/constructorStandings.json"), let standings = list.ConstructorStandings {
@@ -202,8 +202,8 @@ struct StandingsClient {
                             points: s.points,
                             isFollowed: matches(s.Constructor.name))
             }
-            tabs.append(StandingTab(id: "f1-constructors", title: "F1 Constructors",
-                                    tables: [StandingTable(id: "f1-constructors", title: "Constructors' championship",
+            tabs.append(StandingTab(id: "f1-constructors", title: String(localized: "F1 Constructors"),
+                                    tables: [StandingTable(id: "f1-constructors", title: String(localized: "Constructors' championship"),
                                                            rows: rows, showsPlayedAndDifference: false)]))
         }
         return tabs

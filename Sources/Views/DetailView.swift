@@ -25,9 +25,9 @@ extension StreamTarget {
             type: "series",
             id: "\(imdbID):\(season):\(episode)",
             title: item.displayTitle,
-            subtitle: "S\(season)E\(episode) · \(name ?? "Episode \(episode)")",
+            subtitle: "S\(season)E\(episode) · \(name ?? String(localized: "Episode \(episode)"))",
             overview: overview,
-            kicker: "SEASON \(season) · EPISODE \(episode)",
+            kicker: String(localized: "SEASON \(season) · EPISODE \(episode)"),
             detail: name,
             posterURL: item.posterURL,
             backdropURL: item.backdropURL,
@@ -39,7 +39,7 @@ extension StreamTarget {
     static func movie(item: TMDBItem, imdbID: String) -> StreamTarget {
         StreamTarget(type: "movie", id: imdbID, title: item.displayTitle,
                      subtitle: item.year, overview: item.overview,
-                     kicker: "MOVIE", detail: item.year,
+                     kicker: String(localized: "MOVIE"), detail: item.year,
                      posterURL: item.posterURL, backdropURL: item.backdropURL,
                      watch: WatchContext(item: item, imdbID: imdbID))
     }
@@ -85,7 +85,7 @@ struct DetailView: View {
                     }
 
                     if !recommendations.isEmpty {
-                        RailView(title: "More Like This", items: recommendations)
+                        RailView(title: String(localized: "More Like This"), items: recommendations)
                     }
                 }
                 .padding(.bottom, 80)
@@ -144,7 +144,7 @@ struct DetailView: View {
                 .frame(maxWidth: 1100, alignment: .leading)
 
             if let cast = details?.credits?.cast, !cast.isEmpty {
-                Text("Starring " + cast.prefix(4).map(\.name).joined(separator: ", "))
+                Text("Starring \(cast.prefix(4).map(\.name).joined(separator: ", "))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -177,7 +177,7 @@ struct DetailView: View {
             parts.append(runtime >= 60 ? "\(runtime / 60)h \(runtime % 60)m" : "\(runtime)m")
         }
         if item.kind == .tv, let count = details?.numberOfSeasons, count > 0 {
-            parts.append(count == 1 ? "1 Season" : "\(count) Seasons")
+            parts.append(String(localized: "\(count) Seasons"))
         }
         if let genres = details?.genres, !genres.isEmpty {
             parts.append(genres.prefix(3).map(\.name).joined(separator: ", "))
@@ -227,7 +227,7 @@ struct DetailView: View {
                     play(first)
                 }
             } label: {
-                Label(next?.label ?? "Play S\(selectedSeason) E1", systemImage: "play.fill")
+                Label(next?.label ?? String(localized: "Play S\(selectedSeason) E1"), systemImage: "play.fill")
             }
             .disabled(imdbID == nil || (next == nil && episodes.isEmpty))
 
@@ -253,7 +253,7 @@ struct DetailView: View {
               let season = latest.context.season, let episode = latest.context.episode else { return nil }
         if latest.isResumable {
             return (season, episode, latest.context.episodeName, nil,
-                    "Resume S\(season) E\(episode) · \(latest.timeLeftLabel)")
+                    String(localized: "Resume S\(season) E\(episode) · \(latest.timeLeftLabel)"))
         }
         guard latest.watched else { return nil }
         // The next episode in the same season if it has one, otherwise the next season's first.
@@ -262,10 +262,10 @@ struct DetailView: View {
         if episode < count {
             let known: TVEpisode? = season == selectedSeason
                 ? episodes.first(where: { $0.episodeNumber == episode + 1 }) : nil
-            return (season, episode + 1, known?.name, known?.overview, "Play S\(season) E\(episode + 1)")
+            return (season, episode + 1, known?.name, known?.overview, String(localized: "Play S\(season) E\(episode + 1)"))
         }
         if seasons.contains(where: { $0.seasonNumber == season + 1 }) {
-            return (season + 1, 1, nil, nil, "Play S\(season + 1) E1")
+            return (season + 1, 1, nil, nil, String(localized: "Play S\(season + 1) E1"))
         }
         return nil
     }
@@ -282,7 +282,7 @@ struct DetailView: View {
                                 if season.seasonNumber == selectedSeason {
                                     Image(systemName: "checkmark")
                                 }
-                                Text(season.name ?? "Season \(season.seasonNumber)")
+                                Text(season.name ?? String(localized: "Season \(season.seasonNumber)"))
                             }
                         }
                         .id(season.seasonNumber)
@@ -372,7 +372,7 @@ struct DetailView: View {
             let loaded = try await tmdb.details(for: item)
             details = loaded
             if loaded.externalIds?.imdbId == nil {
-                error = "No IMDb id for this title, so addons can't look it up."
+                error = String(localized: "No IMDb id for this title, so addons can't look it up.")
             }
             if item.kind == .tv, let first = seasons.first,
                !seasons.contains(where: { $0.seasonNumber == selectedSeason }) {
@@ -405,7 +405,7 @@ private struct EpisodeCard: View {
 
     private var meta: String {
         if let inProgress { return inProgress.timeLeftLabel }
-        if watched { return "Watched" }
+        if watched { return String(localized: "Watched") }
         var parts: [String] = []
         if let runtime = episode.runtime, runtime > 0 { parts.append("\(runtime)m") }
         if let airDate = episode.airDate, !airDate.isEmpty { parts.append(airDate) }
@@ -433,7 +433,7 @@ private struct EpisodeCard: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-            Text("E\(episode.episodeNumber) · \(episode.name ?? "Episode \(episode.episodeNumber)")")
+            Text("E\(episode.episodeNumber) · \(episode.name ?? String(localized: "Episode \(episode.episodeNumber)"))")
                 .font(.system(size: 24, weight: .heavy))
                 .lineLimit(1)
                 .padding(.top, 4)
@@ -558,7 +558,7 @@ struct StreamListView: View {
                     Button {
                         filter = nil
                     } label: {
-                        PillLabel(title: "All · \(results.count)", selected: filter == nil)
+                        PillLabel(title: String(localized: "All · \(results.count)"), selected: filter == nil)
                     }
                     .buttonStyle(PlainPressStyle())
                     ForEach(StreamQuality.allCases.filter { (counts[$0] ?? 0) > 0 }, id: \.self) { quality in
@@ -585,7 +585,7 @@ struct StreamListView: View {
     private var list: some View {
         VStack(alignment: .leading, spacing: 16) {
             if loading {
-                ProgressView("Searching \(settings.addons.count) addon\(settings.addons.count == 1 ? "" : "s")…")
+                ProgressView(String(localized: "Searching \(settings.addons.count) addons…"))
                     .frame(maxWidth: .infinity)
                     .padding(.top, 80)
             } else if results.isEmpty {
@@ -595,7 +595,7 @@ struct StreamListView: View {
                     .font(.system(size: 30, weight: .bold))
                     .padding(.top, 40)
             } else {
-                Text("\(results.count) STREAM\(results.count == 1 ? "" : "S") FROM \(addonCount) ADDON\(addonCount == 1 ? "" : "S")")
+                Text(String(localized: "\(results.count) streams from \(addonCount) addons").uppercased())
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white.opacity(0.7))
             }
@@ -608,7 +608,7 @@ struct StreamListView: View {
                 Button {
                     askingPIN = true
                 } label: {
-                    PillLabel(title: "\(lockedAddons) locked addon\(lockedAddons == 1 ? "" : "s") · Enter PIN", icon: "lock.fill")
+                    PillLabel(title: String(localized: "\(lockedAddons) locked addons · Enter PIN"), icon: "lock.fill")
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -665,9 +665,9 @@ struct StreamListView: View {
         results = arrange(playable)
         loading = false
         var notes: [String] = []
-        if !failures.isEmpty { notes.append("Failed to reach: " + failures.joined(separator: ", ")) }
+        if !failures.isEmpty { notes.append(String(localized: "Failed to reach: \(failures.joined(separator: ", "))")) }
         if skipped > 0 {
-            notes.append("\(skipped) torrent-only result(s) hidden. Set your addon up to return direct links.")
+            notes.append(String(localized: "\(skipped) torrent-only results hidden. Set your addon up to return direct links."))
         }
         if !notes.isEmpty { status = notes.joined(separator: "\n") }
 
@@ -725,7 +725,7 @@ enum StreamQuality: Int, CaseIterable, Hashable {
         case .fhd: return "1080p"
         case .hd: return "720p"
         case .sd: return "SD"
-        case .unknown: return "Other"
+        case .unknown: return String(localized: "Other")
         }
     }
 

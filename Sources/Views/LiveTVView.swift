@@ -110,7 +110,7 @@ struct LiveTVView: View {
             list.append(GroupEntry(id: category.id, name: category.name, icon: locked ? "lock.fill" : "folder"))
         }
         if !prefs.favouriteChannelIDs.isEmpty {
-            let favourites = GroupEntry(id: Self.favouritesID, name: "Favourites", icon: "star")
+            let favourites = GroupEntry(id: Self.favouritesID, name: String(localized: "Favourites"), icon: "star")
             if prefs.favouritesFirst {
                 list.insert(favourites, at: 0)
             } else {
@@ -118,9 +118,9 @@ struct LiveTVView: View {
             }
         }
         // Search, then Recent, always at the top.
-        var top = [GroupEntry(id: Self.searchID, name: "Search", icon: "magnifyingglass")]
+        var top = [GroupEntry(id: Self.searchID, name: String(localized: "Search"), icon: "magnifyingglass")]
         if !prefs.recentChannelIDs.isEmpty {
-            top.append(GroupEntry(id: Self.recentID, name: "Recent", icon: "clock.arrow.circlepath"))
+            top.append(GroupEntry(id: Self.recentID, name: String(localized: "Recent"), icon: "clock.arrow.circlepath"))
         }
         return top + list
     }
@@ -196,7 +196,7 @@ struct LiveTVView: View {
                     Group {
                         if selectedID == Self.searchID {
                             LiveSearchView { channel, results in
-                                play(channel, in: results, groupName: "Search")
+                                play(channel, in: results, groupName: String(localized: "Search"))
                             }
                         } else if prefs.liveLayout == .guide {
                             guide
@@ -244,7 +244,7 @@ struct LiveTVView: View {
                 Button {
                     choosingAccount = true
                 } label: {
-                    ListRowLabel(title: settings.xtream.displayName, subtitle: "Switch account",
+                    ListRowLabel(title: settings.xtream.displayName, subtitle: String(localized: "Switch account"),
                                  icon: "arrow.left.arrow.right")
                 }
                 .buttonStyle(PlainPressStyle())
@@ -431,7 +431,7 @@ struct LiveTVView: View {
             }
             result.append(GuideSegment(
                 id: "\(channel.id)|\(Int(begins.timeIntervalSince1970))|\(result.count)",
-                title: entry.title.isEmpty ? "No information" : entry.title,
+                title: entry.title.isEmpty ? String(localized: "No information") : entry.title,
                 time: "\(DayFormat.time(begins)) – \(DayFormat.time(ends))",
                 width: CGFloat(to.timeIntervalSince(from) / 60) * scale,
                 isGap: false,
@@ -445,7 +445,7 @@ struct LiveTVView: View {
         if !result.contains(where: { !$0.isGap }) {
             // No listings: one block across the visible window, still selectable to watch.
             let waiting = epg[channel.id] == nil && prefs.showEPG
-            return [GuideSegment(id: "\(channel.id)|0|0", title: waiting ? "Loading guide…" : "No information",
+            return [GuideSegment(id: "\(channel.id)|0|0", title: waiting ? String(localized: "Loading guide…") : String(localized: "No information"),
                                  time: "", width: Self.gridWidth, isGap: false, onNow: false)]
         }
         return result
@@ -459,11 +459,11 @@ struct LiveTVView: View {
                             active: playback == nil && onScreen && !player.isPresentingPlayer)
             }
             VStack(alignment: .leading, spacing: 10) {
-                Text(infoChannel?.name ?? (groups.first { $0.id == selectedID }?.name ?? "Live TV"))
+                Text(infoChannel?.name ?? (groups.first { $0.id == selectedID }?.name ?? String(localized: "Live TV")))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.white.opacity(0.7))
                     .lineLimit(1)
-                Text(entry?.title ?? (infoChannel == nil ? "Choose a programme" : "No information"))
+                Text(entry?.title ?? (infoChannel == nil ? String(localized: "Choose a programme") : String(localized: "No information")))
                     .font(.system(size: 44, weight: .heavy))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
@@ -543,7 +543,7 @@ struct LiveTVView: View {
                         askingPIN = true
                     }
                 } label: {
-                    PillLabel(title: "Enter PIN", icon: "key")
+                    PillLabel(title: String(localized: "Enter PIN"), icon: "key")
                 }
                 .buttonStyle(PlainPressStyle())
             }

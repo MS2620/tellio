@@ -55,7 +55,7 @@ struct LiveSearchView: View {
         let now = Date()
         guard let entry = listings[channel.id]?.first(where: { ($0.start ?? .distantFuture) <= now && ($0.end ?? .distantPast) > now })
         else { return nil }
-        return "Now: \(entry.title)"
+        return String(localized: "Now: \(entry.title)")
     }
 
     var body: some View {
@@ -77,7 +77,7 @@ struct LiveSearchView: View {
                             .foregroundStyle(.white.opacity(0.6))
                     }
                     if !channels.isEmpty {
-                        section("Channels")
+                        section(String(localized: "Channels"))
                         ForEach(channels) { channel in
                             Button {
                                 onPlay(channel, channels)
@@ -91,7 +91,7 @@ struct LiveSearchView: View {
                         }
                     }
                     if !programmes.isEmpty {
-                        section("On now & later today")
+                        section(String(localized: "On now & later today"))
                         ForEach(programmes) { hit in
                             Button {
                                 onPlay(hit.channel, programmes.map(\.channel))
@@ -100,7 +100,7 @@ struct LiveSearchView: View {
                                              subtitle: QualitySort.joined([hit.channel.name, hit.channel.folderName]),
                                              icon: "tv",
                                              logoURL: hit.channel.icon.flatMap { URL(string: $0) }, showsLogo: true,
-                                             trailing: hit.entry.start.map { ($0 <= Date() ? "On now · " : "") + DayFormat.time($0) })
+                                             trailing: hit.entry.start.map { $0 <= Date() ? String(localized: "On now · \(DayFormat.time($0))") : DayFormat.time($0) })
                             }
                             .buttonStyle(PlainPressStyle())
                         }

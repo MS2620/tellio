@@ -13,7 +13,7 @@ enum LiveStreamFormat: String, Codable, CaseIterable, Identifiable {
 enum ChannelSwitching: String, Codable, CaseIterable, Identifiable {
     case fast, stable
     var id: String { rawValue }
-    var label: String { self == .fast ? "Fast (quicker zapping)" : "Stable (bigger buffer)" }
+    var label: String { self == .fast ? String(localized: "Fast (quicker zapping)") : String(localized: "Stable (bigger buffer)") }
 }
 
 enum ChannelSort: String, Codable, CaseIterable, Identifiable {
@@ -21,9 +21,9 @@ enum ChannelSort: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .server: return "Provider order"
-        case .number: return "Channel number"
-        case .name: return "Name (A–Z)"
+        case .server: return String(localized: "Provider order")
+        case .number: return String(localized: "Channel number")
+        case .name: return String(localized: "Name (A–Z)")
         }
     }
 }
@@ -33,7 +33,7 @@ enum MaxResolution: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .any: return "No limit"
+        case .any: return String(localized: "No limit")
         case .uhd: return "4K"
         case .fhd: return "1080p"
         case .hd: return "720p"
@@ -52,13 +52,19 @@ enum MaxResolution: String, Codable, CaseIterable, Identifiable {
 enum StreamSort: String, Codable, CaseIterable, Identifiable {
     case addon, quality
     var id: String { rawValue }
-    var label: String { self == .addon ? "Addon order" : "Best quality first" }
+    var label: String { self == .addon ? String(localized: "Addon order") : String(localized: "Best quality first") }
 }
 
 enum SubtitleSize: String, Codable, CaseIterable, Identifiable {
     case small, medium, large
     var id: String { rawValue }
-    var label: String { rawValue.capitalized }
+    var label: String {
+        switch self {
+        case .small: return String(localized: "Small")
+        case .medium: return String(localized: "Medium")
+        case .large: return String(localized: "Large")
+        }
+    }
     var points: CGFloat {
         switch self {
         case .small: return 34
@@ -71,13 +77,13 @@ enum SubtitleSize: String, Codable, CaseIterable, Identifiable {
 enum LiveLayout: String, Codable, CaseIterable, Identifiable {
     case guide, list
     var id: String { rawValue }
-    var label: String { self == .guide ? "Guide" : "List" }
+    var label: String { self == .guide ? String(localized: "Guide") : String(localized: "List") }
 }
 
 /// The row the Apple TV Top Shelf shows after live games and Continue Watching.
 enum TopShelfExtra: String, Codable, CaseIterable {
     case upcoming, myList
-    var label: String { self == .upcoming ? "Coming up" : "My List" }
+    var label: String { self == .upcoming ? String(localized: "Coming up") : String(localized: "My List") }
 }
 
 enum BackgroundStyle: String, Codable, CaseIterable, Identifiable {
@@ -85,14 +91,14 @@ enum BackgroundStyle: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .frosted: return "Frosted"
-        case .dark: return "Dark"
-        case .ocean: return "Ocean"
-        case .sunset: return "Sunset"
-        case .forest: return "Forest"
-        case .aurora: return "Aurora"
-        case .rose: return "Rosé"
-        case .black: return "Black"
+        case .frosted: return String(localized: "Frosted")
+        case .dark: return String(localized: "Dark")
+        case .ocean: return String(localized: "Ocean")
+        case .sunset: return String(localized: "Sunset")
+        case .forest: return String(localized: "Forest")
+        case .aurora: return String(localized: "Aurora")
+        case .rose: return String(localized: "Rosé")
+        case .black: return String(localized: "Black")
         }
     }
 }
@@ -112,15 +118,15 @@ enum HomeRow: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .myList: return "My List"
-        case .trending: return "Trending Now"
-        case .channels: return "Favourite Channels"
-        case .teams: return "My Teams"
-        case .popularMovies: return "Popular Movies"
-        case .popularSeries: return "Popular Series"
-        case .cinemas: return "New in Cinemas"
-        case .airingToday: return "Airing Today"
-        case .topRated: return "Top Rated Movies"
+        case .myList: return String(localized: "My List")
+        case .trending: return String(localized: "Trending Now")
+        case .channels: return String(localized: "Favourite Channels")
+        case .teams: return String(localized: "My Teams")
+        case .popularMovies: return String(localized: "Popular Movies")
+        case .popularSeries: return String(localized: "Popular Series")
+        case .cinemas: return String(localized: "New in Cinemas")
+        case .airingToday: return String(localized: "Airing Today")
+        case .topRated: return String(localized: "Top Rated Movies")
         }
     }
 }
@@ -337,26 +343,34 @@ struct Choice: Hashable, Identifiable {
     init(_ code: String, _ name: String) { self.code = code; self.name = name }
 }
 
-/// Common choices for the language pickers.
+/// Common choices for the language pickers, named in the language the app is shown in.
 enum LanguageOptions {
-    static let audio: [Choice] = [
-        Choice("en", "English"), Choice("pt", "Portuguese"), Choice("es", "Spanish"), Choice("fr", "French"),
-        Choice("de", "German"), Choice("it", "Italian"), Choice("nl", "Dutch"), Choice("pl", "Polish"),
-        Choice("tr", "Turkish"), Choice("ar", "Arabic"), Choice("hi", "Hindi"), Choice("ja", "Japanese"),
-        Choice("ko", "Korean"), Choice("zh", "Chinese"),
-    ]
+    static var audio: [Choice] {
+        ["en", "pt", "es", "fr", "de", "it", "nl", "pl", "tr", "ar", "hi", "ja", "ko", "zh"]
+            .map { Choice($0, languageName($0)) }
+    }
 
-    static let tmdb: [Choice] = [
-        Choice("en-GB", "English (UK)"), Choice("en-US", "English (US)"), Choice("pt-PT", "Portuguese (Portugal)"),
-        Choice("pt-BR", "Portuguese (Brazil)"), Choice("es-ES", "Spanish"), Choice("fr-FR", "French"),
-        Choice("de-DE", "German"), Choice("it-IT", "Italian"), Choice("nl-NL", "Dutch"), Choice("pl-PL", "Polish"),
-    ]
+    static var tmdb: [Choice] {
+        ["en-GB", "en-US", "pt-PT", "pt-BR", "es-ES", "fr-FR", "de-DE", "it-IT", "nl-NL", "pl-PL"]
+            .map { Choice($0, languageName($0)) }
+    }
 
-    static let regions: [Choice] = [
-        Choice("GB", "United Kingdom"), Choice("IE", "Ireland"), Choice("US", "United States"), Choice("PT", "Portugal"),
-        Choice("BR", "Brazil"), Choice("ES", "Spain"), Choice("FR", "France"), Choice("DE", "Germany"), Choice("IT", "Italy"),
-        Choice("NL", "Netherlands"),
-    ]
+    static var regions: [Choice] {
+        ["GB", "IE", "US", "PT", "BR", "ES", "FR", "DE", "IT", "NL"]
+            .map { Choice($0, displayLocale.localizedString(forRegionCode: $0) ?? $0) }
+    }
+
+    /// The language Tellio's own text is in (English when the Apple TV's language isn't one Tellio has).
+    static var displayLocale: Locale {
+        Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+    }
+
+    /// "pt-BR" → "Portuguese (Brazil)", in the app's language and starting with a capital
+    /// (some languages write their names in lower case: "español", "français").
+    static func languageName(_ identifier: String) -> String {
+        guard let name = displayLocale.localizedString(forIdentifier: identifier) else { return identifier }
+        return name.prefix(1).uppercased(with: displayLocale) + name.dropFirst()
+    }
 }
 
 /// Date helpers shared by the Calendar and Sports screens.
@@ -378,9 +392,9 @@ enum DayFormat {
     /// "Today", "Tomorrow", "Yesterday" or "Friday 21 November".
     static func label(_ date: Date) -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return "Today" }
-        if calendar.isDateInTomorrow(date) { return "Tomorrow" }
-        if calendar.isDateInYesterday(date) { return "Yesterday" }
+        if calendar.isDateInToday(date) { return String(localized: "Today") }
+        if calendar.isDateInTomorrow(date) { return String(localized: "Tomorrow") }
+        if calendar.isDateInYesterday(date) { return String(localized: "Yesterday") }
         return date.formatted(.dateTime.weekday(.wide).day().month(.wide))
     }
 

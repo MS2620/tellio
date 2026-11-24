@@ -13,27 +13,27 @@ final class ContentProvider: TVTopShelfContentProvider {
         var sections: [TVTopShelfItemCollection<TVTopShelfSectionedItem>] = []
         if !snapshot.live.isEmpty {
             let section = TVTopShelfItemCollection(items: snapshot.live.map(Self.item))
-            section.title = "Live now"
+            section.title = String(localized: "Live now")
             sections.append(section)
         }
         if !snapshot.continueWatching.isEmpty {
             let section = TVTopShelfItemCollection(items: snapshot.continueWatching.map(Self.item))
-            section.title = "Continue Watching"
+            section.title = String(localized: "Continue Watching")
             sections.append(section)
         }
         if !snapshot.upcoming.isEmpty {
             let section = TVTopShelfItemCollection(items: snapshot.upcoming.map(Self.item))
-            section.title = "Coming up"
+            section.title = String(localized: "Coming up")
             sections.append(section)
         }
         if !snapshot.myList.isEmpty {
             let section = TVTopShelfItemCollection(items: snapshot.myList.map(Self.item))
-            section.title = "My List"
+            section.title = String(localized: "My List")
             sections.append(section)
         }
         if !snapshot.trending.isEmpty {
             let section = TVTopShelfItemCollection(items: snapshot.trending.map(Self.item))
-            section.title = "Trending"
+            section.title = String(localized: "Trending")
             sections.append(section)
         }
         completionHandler(TVTopShelfSectionedContent(sections: sections))

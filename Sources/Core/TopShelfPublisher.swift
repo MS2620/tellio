@@ -36,7 +36,7 @@ enum TopShelfPublisher {
         snapshot.live = LiveScores.shared.liveFixtures.prefix(4).map { fixture in
             let score = LiveScores.shared.score(for: fixture)
             let title = score.map { "\(fixture.title.replacingOccurrences(of: " v ", with: " \($0.line) ")) · \($0.clock)" }
-                ?? "\(fixture.title) · LIVE"
+                ?? fixture.title + " · " + String(localized: "LIVE")
             return TopShelfItem(id: "match-\(fixture.id)", title: title,
                                 imageURL: fixture.home?.logo,
                                 link: "tellio://match?id=\(encode(fixture.id))")

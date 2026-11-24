@@ -43,7 +43,7 @@ final class UpdateChecker: ObservableObject {
         let builds = releases.compactMap { release -> Release? in
             guard release.draft != true, release.tagName.hasPrefix("build-"),
                   let number = Int(release.tagName.dropFirst("build-".count)) else { return nil }
-            return Release(build: number, title: release.name ?? "Tellio build \(number)",
+            return Release(build: number, title: release.name ?? String(localized: "Tellio build \(number)"),
                            notes: release.body ?? "", url: release.htmlUrl.flatMap(URL.init(string:)))
         }
         guard let newest = builds.max(by: { $0.build < $1.build }) else { return }

@@ -157,15 +157,18 @@ struct StremioAddonClient {
         }
     }
 
-    /// "eng" or "en" → "English"; unknown codes are shown as they are.
+    /// "eng" or "en" → "English" (in the app's language); unknown codes are shown as they are.
     static func languageName(_ code: String) -> String {
         let lower = code.lowercased()
-        if let name = Locale(identifier: "en").localizedString(forLanguageCode: lower) { return name }
         // ISO 639-2 codes Locale doesn't know by the three-letter form.
-        let common = ["eng": "English", "por": "Portuguese", "pob": "Portuguese (Brazil)", "spa": "Spanish",
-                      "fre": "French", "fra": "French", "ger": "German", "deu": "German", "ita": "Italian",
-                      "dut": "Dutch", "nld": "Dutch", "pol": "Polish", "rum": "Romanian", "ron": "Romanian",
-                      "gre": "Greek", "ell": "Greek", "chi": "Chinese", "zho": "Chinese", "cze": "Czech", "ces": "Czech"]
-        return common[lower] ?? code.uppercased()
+        let common = ["eng": "en", "por": "pt", "pob": "pt-BR", "spa": "es", "fre": "fr", "fra": "fr",
+                      "ger": "de", "deu": "de", "ita": "it", "dut": "nl", "nld": "nl", "pol": "pl",
+                      "rum": "ro", "ron": "ro", "gre": "el", "ell": "el", "chi": "zh", "zho": "zh",
+                      "cze": "cs", "ces": "cs"]
+        if let mapped = common[lower] { return LanguageOptions.languageName(mapped) }
+        if LanguageOptions.displayLocale.localizedString(forLanguageCode: lower) != nil {
+            return LanguageOptions.languageName(lower)
+        }
+        return code.uppercased()
     }
 }

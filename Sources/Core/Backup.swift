@@ -27,11 +27,11 @@ enum BackupError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noServer: return "Add your backup server and password first."
-        case .wrongPassword: return "The server rejected the password."
-        case .notFound: return "No backup with that code (they're kept for 30 days)."
-        case .cantDecrypt: return "That code doesn't open this backup. Check the code and the server password."
-        case .server(let code): return "The backup server answered \(code)."
+        case .noServer: return String(localized: "Add your backup server and password first.")
+        case .wrongPassword: return String(localized: "The server rejected the password.")
+        case .notFound: return String(localized: "No backup with that code (they're kept for 30 days).")
+        case .cantDecrypt: return String(localized: "That code doesn't open this backup. Check the code and the server password.")
+        case .server(let code): return String(localized: "The backup server answered \(code).")
         }
     }
 }
