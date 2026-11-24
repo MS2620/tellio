@@ -113,58 +113,83 @@ struct CardButtonLabel: View {
     }
 }
 
-/// Slides in bottom-right when a reminded programme starts: Watch now or Dismiss.
+/// Slides in bottom-right shortly before a reminded programme or match starts. A programme
+/// offers Watch now; a match offers Where to watch, which opens its page to pick a channel.
 /// Shown over the tabs by the root view and over the player by the player.
 struct ReminderBanner: View {
     let onWatch: (ProgrammeReminder) -> Void
+    let onMatch: (MatchReminder) -> Void
     @ObservedObject private var store = ReminderStore.shared
     @FocusState private var focused: Int?
+
+    private var dueID: String? { store.due?.id ?? store.dueMatch.map { "match|\($0.id)" } }
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Color.clear
-            if let due = store.due {
-                card(due)
-                    .padding(.trailing, 60)
-                    .padding(.bottom, 60)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
-                    .task(id: due.id) {
-                        try? await Task.sleep(for: .milliseconds(120))
-                        focused = 0
-                        // Goes away by itself after a couple of minutes.
-                        try? await Task.sleep(for: .seconds(120))
-                        if store.due?.id == due.id { withAnimation { store.dismissDue() } }
+            if let dueID {
+                Group {
+                    if let due = store.due {
+                        card(start: due.start, title: due.title,
+                             detail: "\(due.channelName) · \(DayFormat.time(due.start))",
+                             action: String(localized: "Watch now")) {
+                            store.dismissDue()
+                            onWatch(due)
+                        }
+                    } else if let match = store.dueMatch {
+                        card(start: match.start, title: match.title,
+                             detail: "\(match.fixture.competition) · \(DayFormat.time(match.start))",
+                             action: String(localized: "Where to watch")) {
+                            store.dismissDueMatch()
+                            onMatch(match)
+                        }
                     }
+                }
+                .padding(.trailing, 60)
+                .padding(.bottom, 60)
+                .transition(.move(edge: .trailing).combined(with: .opacity))
+                .task(id: dueID) {
+                    try? await Task.sleep(for: .milliseconds(120))
+                    focused = 0
+                    // Goes away by itself after a couple of minutes.
+                    try? await Task.sleep(for: .seconds(120))
+                    if self.dueID == dueID { withAnimation { dismiss() } }
+                }
             }
         }
-        .animation(.easeOut(duration: 0.25), value: store.due?.id)
+        .animation(.easeOut(duration: 0.25), value: dueID)
         .ignoresSafeArea()
     }
 
-    private func card(_ due: ProgrammeReminder) -> some View {
+    private func dismiss() {
+        store.dismissDue()
+        store.dismissDueMatch()
+    }
+
+    private func card(start: Date, title: String, detail: String, action: String,
+                      perform: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label(due.start <= Date() ? "STARTING NOW" : "STARTING AT \(DayFormat.time(due.start))", systemImage: "bell.fill")
-                .font(.system(size: 17, weight: .bold))
-                .foregroundStyle(Color(red: 1, green: 0.7, blue: 0.25))
-            Text(due.title)
+            TimelineView(.periodic(from: .now, by: 15)) { _ in
+                Label(ReminderLead.heading(start), systemImage: "bell.fill")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(Color(red: 1, green: 0.7, blue: 0.25))
+            }
+            Text(title)
                 .font(.system(size: 26, weight: .heavy))
                 .lineLimit(2)
-            Text("\(due.channelName) · \(DayFormat.time(due.start))")
+            Text(detail)
                 .font(.system(size: 20, weight: .medium))
                 .foregroundStyle(.white.opacity(0.7))
                 .lineLimit(1)
             HStack(spacing: 12) {
-                Button {
-                    store.dismissDue()
-                    onWatch(due)
-                } label: {
-                    CardButtonLabel(title: String(localized: "Watch now"), compact: true)
+                Button(action: perform) {
+                    CardButtonLabel(title: action, compact: true)
                 }
                 .buttonStyle(PlainPressStyle())
                 .focused($focused, equals: 0)
 
                 Button {
-                    withAnimation { store.dismissDue() }
+                    withAnimation { dismiss() }
                 } label: {
                     CardButtonLabel(title: String(localized: "Dismiss"), compact: true)
                 }
@@ -180,7 +205,7 @@ struct ReminderBanner: View {
             .fill(Color(red: 30 / 255, green: 32 / 255, blue: 38 / 255).opacity(0.97)))
         .shadow(color: .black.opacity(0.5), radius: 25, y: 12)
         .focusSection()
-        .onExitCommand { withAnimation { store.dismissDue() } }
+        .onExitCommand { withAnimation { dismiss() } }
     }
 }
 
@@ -190,7 +215,7 @@ struct RemindersPanel: View {
 
     var body: some View {
         GlassPanel("Reminders") {
-            if store.reminders.isEmpty {
+            if store.reminders.isEmpty && store.matches.isEmpty {
                 ListRowLabel(title: String(localized: "No reminders"), subtitle: String(localized: "Select a programme that hasn't started in the guide"),
                              icon: "bell", dimmed: true)
             } else {
@@ -203,7 +228,17 @@ struct RemindersPanel: View {
                     }
                     .buttonStyle(PlainPressStyle())
                 }
+                ForEach(store.matches) { reminder in
+                    Button {
+                        store.remove(fixture: reminder.fixture)
+                    } label: {
+                        ListRowLabel(title: reminder.title, subtitle: String(localized: "\(reminder.fixture.competition) · select to cancel"),
+                                     icon: reminder.fixture.isRace ? "flag.checkered" : "sportscourt", trailing: reminder.whenLabel)
+                    }
+                    .buttonStyle(PlainPressStyle())
+                }
             }
         }
     }
 }
+

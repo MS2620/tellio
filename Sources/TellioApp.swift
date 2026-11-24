@@ -33,18 +33,28 @@ struct RootView: View {
     /// Opened from a Top Shelf card.
     @State private var deepLink: DeepLink?
     @ObservedObject private var multiview = MultiviewStore.shared
+    @ObservedObject private var reminders = ReminderStore.shared
+
+    private func openReminderMatch() {
+        guard !player.isPresentingPlayer, reminders.matchToOpen != nil,
+              let fixture = reminders.takeMatchToOpen() else { return }
+        deepLink = .match(fixture)
+    }
 
     var body: some View {
         tabs
             // Reminders slide in over every tab; the player shows its own while it's open.
             .overlay {
                 if !player.isPresentingPlayer {
-                    ReminderBanner { reminder in
+                    ReminderBanner(onWatch: { reminder in
                         reminderPlayback = .liveChannel(reminder.channel, settings: settings)
-                    }
+                    }, onMatch: { reminders.open($0) })
                 }
             }
             .task { await ReminderStore.shared.run() }
+            // A match reminder's "Where to watch": its page, once the player (if any) has closed.
+            .onChange(of: reminders.matchToOpen) { openReminderMatch() }
+            .onChange(of: player.isPresentingPlayer) { openReminderMatch() }
             .task {
                 TraktSync.shared.attach(settings)
                 await TraktSync.shared.run()

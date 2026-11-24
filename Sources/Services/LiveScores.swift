@@ -54,6 +54,8 @@ final class LiveScores: ObservableObject {
     }
 
     func fixture(id: String) -> Fixture? { tracked[id] }
+    /// Every fixture loaded lately, e.g. for setting reminders for your teams' matches.
+    var trackedFixtures: [Fixture] { Array(tracked.values) }
 
     /// Games that have kicked off and haven't finished.
     private var underWay: [Fixture] {

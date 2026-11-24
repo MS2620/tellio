@@ -2552,6 +2552,40 @@
         }
       }
     },
+    "10 minutes before" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minutos antes"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 Minuten vorher"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minutes avant"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minutos antes"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "10 minut przed"
+          }
+        }
+      }
+    },
     "10-bit video isn't upscaled" : {
       "localizations" : {
         "es" : {
@@ -2616,6 +2650,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "14 dni"
+          }
+        }
+      }
+    },
+    "15 minutes before" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutos antes"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 Minuten vorher"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutes avant"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minutos antes"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "15 minut przed"
           }
         }
       }
@@ -2786,6 +2854,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "30 minut"
+          }
+        }
+      }
+    },
+    "30 minutes before" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minutos antes"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 Minuten vorher"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minutes avant"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minutos antes"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "30 minut przed"
+          }
+        }
+      }
+    },
+    "5 minutes before" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutos antes"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 Minuten vorher"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutes avant"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minutos antes"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 minut przed"
           }
         }
       }
@@ -9498,6 +9634,40 @@
         }
       }
     },
+    "Fixtures cover every competition a team plays in, not just the league you picked it from. Match reminders go off as set in Live TV & Guide › Remind me." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los partidos incluyen todas las competiciones de un equipo, no solo la liga desde la que lo elegiste. Los recordatorios de partidos avisan según TV en directo y guía › Recordármelo."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiele umfassen alle Wettbewerbe eines Teams, nicht nur die Liga, aus der du es gewählt hast. Spielerinnerungen kommen wie unter Live-TV & TV-Guide › Erinnern eingestellt."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les matchs couvrent toutes les compétitions d’une équipe, pas seulement la ligue depuis laquelle vous l’avez choisie. Les rappels de match suivent le réglage TV en direct et guide › Me rappeler."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os jogos incluem todas as competições de uma equipa, não só a liga de onde a escolheu. Os lembretes de jogos seguem a definição em TV em direto e guia › Lembrar-me."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mecze obejmują wszystkie rozgrywki drużyny, nie tylko ligę, z której ją wybrano. Przypomnienia o meczach działają zgodnie z ustawieniem TV na żywo i program › Przypomnij mi."
+          }
+        }
+      }
+    },
     "Folder" : {
       "localizations" : {
         "es" : {
@@ -11331,6 +11501,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pomysł"
+          }
+        }
+      }
+    },
+    "IN %lld MIN" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EN %lld MIN"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IN %lld MIN"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DANS %lld MIN"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DAQUI A %lld MIN"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ZA %lld MIN"
           }
         }
       }
@@ -19345,6 +19549,40 @@
         }
       }
     },
+    "Remind me about my teams' matches" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recordarme los partidos de mis equipos"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An Spiele meiner Teams erinnern"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Me rappeler les matchs de mes équipes"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lembrar-me dos jogos das minhas equipas"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przypominaj o meczach moich drużyn"
+          }
+        }
+      }
+    },
     "Reminders" : {
       "localizations" : {
         "es" : {
@@ -21675,6 +21913,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wybierz w programie TV pozycję, która jeszcze się nie zaczęła, aby otrzymać przypomnienie przy jej rozpoczęciu. Przypomnienia pojawiają się, gdy Tellio jest otwarte, także nad odtwarzaczem; tvOS nie pozwala zamkniętym aplikacjom wysyłać powiadomień."
+          }
+        }
+      }
+    },
+    "Select a programme that hasn't started in the guide, or Remind me on a match, to be reminded before it begins. Reminders appear while Tellio is open, including over the player; tvOS doesn't let apps notify you when they're closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona en la guía un programa que aún no haya empezado, o Recordármelo en un partido, para que te avise antes de que comience. Los recordatorios aparecen mientras Tellio está abierto, también sobre el reproductor; tvOS no permite que las apps avisen cuando están cerradas."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle im TV-Guide eine Sendung, die noch nicht begonnen hat, oder Erinnern bei einem Spiel, um vor Beginn erinnert zu werden. Erinnerungen erscheinen, solange Tellio geöffnet ist, auch über dem Player; tvOS erlaubt Apps keine Benachrichtigungen, wenn sie geschlossen sind."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez dans le guide un programme pas encore commencé, ou Me rappeler sur un match, pour être prévenu avant son début. Les rappels s’affichent quand Tellio est ouvert, y compris par-dessus le lecteur ; tvOS ne permet pas aux apps fermées d’envoyer des notifications."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione no guia um programa que ainda não tenha começado, ou Lembrar-me num jogo, para ser avisado antes de começar. Os lembretes aparecem enquanto o Tellio está aberto, incluindo por cima do leitor; o tvOS não permite que as apps avisem quando estão fechadas."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybierz w programie TV pozycję, która jeszcze się nie zaczęła, albo Przypomnij mi przy meczu, aby otrzymać przypomnienie przed jej rozpoczęciem. Przypomnienia pojawiają się, gdy Tellio jest otwarte, także nad odtwarzaczem; tvOS nie pozwala zamkniętym aplikacjom wysyłać powiadomień."
           }
         }
       }
@@ -28708,6 +28980,40 @@
         }
       }
     },
+    "When it starts" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al empezar"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Beginn"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Au début"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quando começar"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gdy się zaczyna"
+          }
+        }
+      }
+    },
     "When on, subtitles in this language are picked automatically if the video has them." : {
       "localizations" : {
         "es" : {
@@ -28772,6 +29078,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gdy strumienie są sortowane według kolejności dodatków (Ustawienia → Strumienie), dodatki wyżej na liście są pierwsze."
+          }
+        }
+      }
+    },
+    "Where to watch" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dónde verlo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wo es läuft"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Où regarder"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onde ver"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gdzie oglądać"
           }
         }
       }

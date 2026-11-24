@@ -210,6 +210,12 @@ struct Preferences: Codable, Equatable {
     // Sports
     var favouriteTeams: [FavouriteTeam] = []
     var sportsDaysAhead = 14
+    /// Every match of the followed teams gets a reminder.
+    var remindTeamMatches = false
+
+    // Reminders (programmes and matches)
+    /// How many minutes before the start a reminder goes off; 0 is when it starts.
+    var reminderLeadMinutes = 0
 
     // Calendar
     var calendarEpisodesPerSeries = 2
