@@ -90,6 +90,8 @@ enum AddonSports {
             }
         }
 
+        found = narrowGames(found, fixture: fixture)
+
         // A list for the game's sport ("Cricket") whose channels may be showing it: offered
         // after any real matches, leaving out other games it lists.
         let sportLists = catalogues.filter { isFor(sport: fixture, $0) && !$0.needsExtra }
@@ -129,6 +131,55 @@ enum AddonSports {
     }
 
     // MARK: Matching
+
+    /// Addons list each day of a Test, and the same two teams' other games, separately. Only
+    /// listings dated within this game's days are kept, and of those the one on now, or else
+    /// the soonest (later days only say when they start).
+    private static func narrowGames(_ found: [String: (meta: StremioMeta, kind: AddonSportsHit.Kind)],
+                                    fixture: Fixture) -> [String: (meta: StremioMeta, kind: AddonSportsHit.Kind)] {
+        let games = found.filter { $0.value.kind == .game }
+        guard !games.isEmpty else { return found }
+        let from = fixture.date.addingTimeInterval(-12 * 3600)
+        let until = fixture.lastsUntil.addingTimeInterval(12 * 3600)
+
+        var dated: [(id: String, date: Date?, live: Bool)] = []
+        for (id, entry) in games {
+            let text = (entry.meta.name ?? "") + " " + (entry.meta.description ?? "")
+            let date = listedDate(text)
+            if let date, date < from || date > until { continue }
+            if date == nil && !(from...until).contains(Date()) && text.lowercased().contains("live now") { continue }
+            // "LIVE NOW" has no date, so it only counts while this game is on (not another
+            // game between the same teams on a different day).
+            let onNow = (from...until).contains(Date())
+            dated.append((id, date, onNow && text.lowercased().contains("live now")))
+        }
+        let keep: Set<String>
+        if dated.contains(where: { $0.live }) {
+            keep = Set(dated.filter { $0.live }.map { $0.id })
+        } else if let soonest = dated.compactMap({ $0.date }).min() {
+            // The soonest dated listing, plus any that give no date at all.
+            keep = Set(dated.filter { $0.date == nil || $0.date == soonest }.map { $0.id })
+        } else {
+            keep = Set(dated.map { $0.id })
+        }
+        return found.filter { $0.value.kind != .game || keep.contains($0.key) }
+    }
+
+    private static let listedDateFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(identifier: "UTC")
+        formatter.dateFormat = "d MMM yyyy HH:mm"
+        return formatter
+    }()
+
+    /// "25 Nov 2026 · 08:00 UTC", as sports addons often write a start time.
+    private static func listedDate(_ text: String) -> Date? {
+        guard let range = text.range(of: #"\d{1,2} [A-Za-z]{3} \d{4} · \d{1,2}:\d{2}"#, options: .regularExpression) else {
+            return nil
+        }
+        return listedDateFormat.date(from: text[range].replacingOccurrences(of: " · ", with: " "))
+    }
 
     /// Whether a catalogue is the addon's list for the fixture's sport, by its name or id.
     private static func isFor(sport fixture: Fixture, _ catalogue: AddonCatalogue) -> Bool {
