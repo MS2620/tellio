@@ -12,7 +12,7 @@ struct RenameChannelView: View {
     var body: some View {
         SettingsPage("Rename channel") {
             GlassPanel {
-                TypingRow(title: "Name", subtitle: "Select to type a new name", icon: "pencil",
+                TypingRow(title: String(localized: "Name"), subtitle: String(localized: "Select to type a new name"), icon: "pencil",
                           value: channel.name, initial: channel.name, autocapitalize: true) { name in
                     rename(to: name)
                 }
@@ -21,7 +21,7 @@ struct RenameChannelView: View {
                         settings.prefs.channelNames[channel.id] = nil
                         dismiss()
                     } label: {
-                        ListRowLabel(title: "Use the provider's name", subtitle: channel.providerName,
+                        ListRowLabel(title: String(localized: "Use the provider's name"), subtitle: channel.providerName,
                                      icon: "arrow.counterclockwise")
                     }
                     .buttonStyle(PlainPressStyle())

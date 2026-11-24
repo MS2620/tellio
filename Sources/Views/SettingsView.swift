@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject var settings: AppSettings
     @ObservedObject private var updates = UpdateChecker.shared
     @State private var showingNotes = false
+    @State private var language = AppLanguage.chosen
 
     var body: some View {
         NavigationStack {
@@ -22,18 +23,23 @@ struct SettingsView: View {
                 }
 
                 GlassPanel("Personalise") {
+                    SettingsOptionRow("Language", icon: "globe", selection: $language, options: AppLanguage.options)
+                        .onChange(of: language) { _, value in AppLanguage.chosen = value }
                     SettingsLinkRow("Home screen", icon: "house") { HomeScreenSettingsView() }
                     SettingsLinkRow("Appearance", icon: "paintbrush",
                                     value: settings.prefs.backgroundStyle.label) { AppearanceSettingsView() }
                     SettingsLinkRow("Sports", icon: "sportscourt") { SportsSettingsView() }
                     SettingsLinkRow("Calendar", icon: "calendar") { CalendarSettingsView() }
                     SettingsLinkRow("Parental controls", icon: "lock",
-                                    value: settings.prefs.parentalControlsOn ? "On" : "Off") { ParentalControlsView() }
+                                    value: settings.prefs.parentalControlsOn ? String(localized: "On") : String(localized: "Off")) { ParentalControlsView() }
+                }
+                if language != AppLanguage.atLaunch {
+                    SettingsNote("Tellio changes language the next time it opens. To close it now, press the TV button twice and swipe Tellio up.")
                 }
 
                 GlassPanel("Backup") {
                     SettingsLinkRow("Backup & restore", icon: "externaldrive",
-                                    value: BackupService.shared.isConfigured ? "Ready" : "Set up") { BackupView() }
+                                    value: BackupService.shared.isConfigured ? String(localized: "Ready") : String(localized: "Set up")) { BackupView() }
                 }
 
                 GlassPanel("About") {
@@ -41,10 +47,10 @@ struct SettingsView: View {
                     Button {
                         if updates.latest != nil { showingNotes = true }
                     } label: {
-                        ListRowLabel(title: "Updates", icon: "arrow.up.circle",
+                        ListRowLabel(title: String(localized: "Updates"), icon: "arrow.up.circle",
                                      trailing: updates.updateAvailable
-                                         ? "Build \(updates.latest?.build ?? 0) available"
-                                         : (updates.latest == nil ? "Checking…" : "Up to date"))
+                                         ? String(localized: "Build \(updates.latest?.build ?? 0) available")
+                                         : (updates.latest == nil ? String(localized: "Checking…") : String(localized: "Up to date")))
                     }
                     .buttonStyle(PlainPressStyle())
                     .sheet(isPresented: $showingNotes) {
@@ -53,15 +59,15 @@ struct SettingsView: View {
                     NavigationLink {
                         FeedbackView()
                     } label: {
-                        ListRowLabel(title: "Send feedback", subtitle: "Report a problem or suggest an idea",
-                                     icon: "bubble.left", trailing: FeedbackService.isAvailable ? nil : "Not in this build",
+                        ListRowLabel(title: String(localized: "Send feedback"), subtitle: String(localized: "Report a problem or suggest an idea"),
+                                     icon: "bubble.left", trailing: FeedbackService.isAvailable ? nil : String(localized: "Not in this build"),
                                      trailingIcon: "chevron.right")
                     }
                     .buttonStyle(PlainPressStyle())
                     SettingsToggleRow("Send crash reports", icon: "ant",
                                       subtitle: CrashReporting.isAvailable
-                                          ? "Anonymous; no logins, links or watch history"
-                                          : "Not in this build",
+                                          ? String(localized: "Anonymous; no logins, links or watch history")
+                                          : String(localized: "Not in this build"),
                                       isOn: Binding(
                                           get: { settings.prefs.crashReports },
                                           set: { on in
@@ -73,7 +79,7 @@ struct SettingsView: View {
                     NavigationLink {
                         AcknowledgementsView()
                     } label: {
-                        ListRowLabel(title: "Acknowledgements", subtitle: "Open-source software in Tellio",
+                        ListRowLabel(title: String(localized: "Acknowledgements"), subtitle: String(localized: "Open-source software in Tellio"),
                                      icon: "doc.text", trailingIcon: "chevron.right")
                     }
                     .buttonStyle(PlainPressStyle())
@@ -85,13 +91,13 @@ struct SettingsView: View {
 
     /// "Ready · 12 cards · shown 2 minutes ago", or why it isn't working.
     static var topShelfStatus: String {
-        guard TopShelfStore.isAvailable else { return "Blocked by signing (no App Group)" }
+        guard TopShelfStore.isAvailable else { return String(localized: "Blocked by signing (no App Group)") }
         let cards = TopShelfStore.read()?.cardCount ?? 0
-        var parts = ["Ready", cards == 1 ? "1 card" : "\(cards) cards"]
+        var parts = [String(localized: "Ready"), String(localized: "\(cards) cards")]
         if let read = TopShelfStore.lastRead {
-            parts.append("shown " + read.date.formatted(.relative(presentation: .named)))
+            parts.append(String(localized: "shown \(read.date.formatted(.relative(presentation: .named)))"))
         } else {
-            parts.append("not shown yet")
+            parts.append(String(localized: "not shown yet"))
         }
         return parts.joined(separator: " · ")
     }
@@ -111,6 +117,11 @@ struct SettingsPage<Content: View>: View {
     let title: String
     let content: Content
 
+    init(_ title: LocalizedStringResource, @ViewBuilder content: () -> Content) {
+        self.init(String(localized: title), content: content)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
@@ -141,6 +152,12 @@ struct SettingsLinkRow<Destination: View>: View {
     let value: String?
     let destination: Destination
 
+    init(_ title: LocalizedStringResource, icon: String, value: String? = nil,
+         @ViewBuilder destination: () -> Destination) {
+        self.init(String(localized: title), icon: icon, value: value, destination: destination)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, icon: String, value: String? = nil, @ViewBuilder destination: () -> Destination) {
         self.title = title
         self.icon = icon
@@ -164,6 +181,11 @@ struct SettingsInfoRow: View {
     let icon: String
     let value: String
 
+    init(_ title: LocalizedStringResource, icon: String, value: String) {
+        self.init(String(localized: title), icon: icon, value: value)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, icon: String, value: String) {
         self.title = title
         self.icon = icon
@@ -185,6 +207,11 @@ struct SettingsToggleRow: View {
     var subtitle: String? = nil
     @Binding var isOn: Bool
 
+    init(_ title: LocalizedStringResource, icon: String, subtitle: String? = nil, isOn: Binding<Bool>) {
+        self.init(String(localized: title), icon: icon, subtitle: subtitle, isOn: isOn)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, icon: String, subtitle: String? = nil, isOn: Binding<Bool>) {
         self.title = title
         self.icon = icon
@@ -196,7 +223,7 @@ struct SettingsToggleRow: View {
         Button {
             isOn.toggle()
         } label: {
-            ListRowLabel(title: title, subtitle: subtitle, icon: icon, trailing: isOn ? "On" : "Off",
+            ListRowLabel(title: title, subtitle: subtitle, icon: icon, trailing: isOn ? String(localized: "On") : String(localized: "Off"),
                          trailingIcon: isOn ? "checkmark.circle.fill" : "circle")
         }
         .buttonStyle(PlainPressStyle())
@@ -211,6 +238,11 @@ struct SettingsOptionRow<Value: Hashable>: View {
     let options: [(Value, String)]
     @State private var choosing = false
 
+    init(_ title: LocalizedStringResource, icon: String, selection: Binding<Value>, options: [(Value, String)]) {
+        self.init(String(localized: title), icon: icon, selection: selection, options: options)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, icon: String, selection: Binding<Value>, options: [(Value, String)]) {
         self.title = title
         self.icon = icon
@@ -247,6 +279,11 @@ struct SettingsActionRow: View {
     let value: String?
     let action: () -> Void
 
+    init(_ title: LocalizedStringResource, icon: String, value: String? = nil, action: @escaping () -> Void) {
+        self.init(String(localized: title), icon: icon, value: value, action: action)
+    }
+
+    @_disfavoredOverload
     init(_ title: String, icon: String, value: String? = nil, action: @escaping () -> Void) {
         self.title = title
         self.icon = icon
@@ -266,6 +303,9 @@ struct SettingsActionRow: View {
 struct SettingsNote: View {
     let text: String
 
+    init(_ text: LocalizedStringResource) { self.text = String(localized: text) }
+
+    @_disfavoredOverload
     init(_ text: String) { self.text = text }
 
     var body: some View {
@@ -284,7 +324,7 @@ struct LiveTVSettingsView: View {
     @EnvironmentObject var settings: AppSettings
 
     private static let userAgentPresets: [Choice] = [
-        Choice("", "Default"),
+        Choice("", String(localized: "Default")),
         Choice("VLC/3.0.21 LibVLC/3.0.21", "VLC"),
         Choice("TiviMate/5.1.6 (Android 12)", "TiviMate"),
         Choice("IPTVSmartersPro", "IPTV Smarters"),
@@ -294,7 +334,7 @@ struct LiveTVSettingsView: View {
         var options = Self.userAgentPresets.map { ($0.code, $0.name) }
         let current = settings.prefs.iptvUserAgent
         if !Self.userAgentPresets.contains(where: { $0.code == current }) {
-            options.append((current, "Custom"))
+            options.append((current, String(localized: "Custom")))
         }
         return options
     }
@@ -308,7 +348,7 @@ struct LiveTVSettingsView: View {
                 SettingsOptionRow("Default view", icon: "square.grid.2x2", selection: $settings.prefs.liveLayout,
                                   options: LiveLayout.allCases.map { ($0, $0.label) })
                 SettingsOptionRow("Guide shows", icon: "clock", selection: $settings.prefs.guideHours,
-                                  options: [(1, "1 hour at a time"), (2, "2 hours at a time"), (3, "3 hours at a time")])
+                                  options: [(1, String(localized: "1 hour at a time")), (2, String(localized: "2 hours at a time")), (3, String(localized: "3 hours at a time"))])
                 SettingsToggleRow("Live preview in the guide", icon: "play.tv", isOn: $settings.prefs.guidePreview)
                 SettingsToggleRow("Channel numbers", icon: "number", isOn: $settings.prefs.showChannelNumbers)
             }
@@ -333,7 +373,7 @@ struct LiveTVSettingsView: View {
                 SettingsOptionRow("Channel switching", icon: "hare", selection: $settings.prefs.channelSwitching,
                                   options: ChannelSwitching.allCases.map { ($0, $0.label) })
                 SettingsOptionRow("Timeshift (pause & rewind)", icon: "gobackward", selection: $settings.prefs.timeshiftMinutes,
-                                  options: [(0, "Off"), (30, "30 minutes"), (60, "1 hour"), (120, "2 hours")])
+                                  options: [(0, String(localized: "Off")), (30, String(localized: "30 minutes")), (60, String(localized: "1 hour")), (120, String(localized: "2 hours"))])
                 SettingsToggleRow("Match frame rate on live channels", icon: "tv", isOn: $settings.prefs.matchContentLive)
             }
             SettingsNote("Try MPEG-TS if channels fail on HLS. Stable switching starts slower but buffers more. Timeshift keeps recent video on the Apple TV so you can pause and rewind live channels. Matching the frame rate makes the TV go black for a moment each time you change channel, so it's off for live TV unless you turn it on here.")
@@ -361,8 +401,8 @@ struct ContentSettingsView: View {
     private var hiddenSummary: String {
         let groups = settings.prefs.hiddenCategoryIDs.count
         let channels = settings.prefs.hiddenChannelIDs.count
-        if groups == 0 && channels == 0 { return "Nothing hidden" }
-        return "\(groups) groups, \(channels) channels hidden"
+        if groups == 0 && channels == 0 { return String(localized: "Nothing hidden") }
+        return String(localized: "\(groups) groups, \(channels) channels hidden")
     }
 
     var body: some View {
@@ -379,9 +419,9 @@ struct ContentSettingsView: View {
                     QualitySortSettingsView()
                 } label: {
                     let count = settings.prefs.qualitySortCategoryIDs.count
-                    ListRowLabel(title: "Sort by quality", subtitle: "Split groups into 4K, FHD, HD and SD folders",
+                    ListRowLabel(title: String(localized: "Sort by quality"), subtitle: String(localized: "Split groups into 4K, FHD, HD and SD folders"),
                                  icon: "line.3.horizontal.decrease",
-                                 trailing: count == 0 ? "Off" : (count == 1 ? "1 group" : "\(count) groups"),
+                                 trailing: count == 0 ? String(localized: "Off") : String(localized: "\(count) groups"),
                                  trailingIcon: "chevron.right")
                 }
                 .buttonStyle(PlainPressStyle())
@@ -390,15 +430,15 @@ struct ContentSettingsView: View {
 
             GlassPanel("TV guide data") {
                 SettingsOptionRow("Refresh guide", icon: "arrow.triangle.2.circlepath", selection: $settings.prefs.epgRefreshHours,
-                                  options: [(0, "Every time the app opens"), (1, "Every hour"), (3, "Every 3 hours"),
-                                            (6, "Every 6 hours"), (12, "Every 12 hours"), (24, "Once a day"),
-                                            (-1, "Only when I ask")])
+                                  options: [(0, String(localized: "Every time the app opens")), (1, String(localized: "Every hour")), (3, String(localized: "Every 3 hours")),
+                                            (6, String(localized: "Every 6 hours")), (12, String(localized: "Every 12 hours")), (24, String(localized: "Once a day")),
+                                            (-1, String(localized: "Only when I ask"))])
                 SettingsActionRow("Refresh now", icon: "arrow.clockwise", value: refreshStatus) {
-                    refreshStatus = "Clearing…"
+                    refreshStatus = String(localized: "Clearing…")
                     Task {
                         await XtreamCache.shared.clearGuide()
                         await SportsGuide.shared.clear()
-                        refreshStatus = "Done — guide reloads when you open Live TV"
+                        refreshStatus = String(localized: "Done — guide reloads when you open Live TV")
                     }
                 }
             }
@@ -411,8 +451,8 @@ struct ContentSettingsView: View {
             SettingsNote("Adds the movie and series libraries that come with your IPTV login as extra rows on the Movies and Series tabs. Off by default.")
 
             GlassPanel("Catalogue") {
-                SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.tmdbLanguage,
-                                  options: LanguageOptions.tmdb.map { ($0.code, $0.name) })
+                SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.catalogueLanguage,
+                                  options: LanguageOptions.catalogue)
                 SettingsOptionRow("Region", icon: "mappin.and.ellipse", selection: $settings.prefs.tmdbRegion,
                                   options: LanguageOptions.regions.map { ($0.code, $0.name) })
             }
@@ -453,8 +493,8 @@ struct ChannelBrowser: View {
     }
 
     private var title: String {
-        if let folder { return "Add to \(folder.name)" }
-        return "Groups & channels"
+        if let folder { return String(localized: "Add to \(folder.name)") }
+        return String(localized: "Groups & channels")
     }
 
     /// Picking for a folder only offers what isn't hidden.
@@ -481,7 +521,7 @@ struct ChannelBrowser: View {
                             settings.prefs.hiddenCategoryIDs.removeAll()
                             settings.prefs.hiddenChannelIDs.removeAll()
                         } label: {
-                            PillLabel(title: "Show everything", icon: "eye")
+                            PillLabel(title: String(localized: "Show everything"), icon: "eye")
                         }
                         .buttonStyle(PlainPressStyle())
                     }
@@ -517,8 +557,8 @@ struct ChannelBrowser: View {
                         if mode == .visibility { toggleGroup(group.id) }
                     } label: {
                         ListRowLabel(title: group.name,
-                                     subtitle: "\(byGroup[group.id]?.count ?? 0) channels",
-                                     trailing: mode == .visibility ? (hidden ? "Hidden" : nil) : nil,
+                                     subtitle: String(localized: "\(byGroup[group.id]?.count ?? 0) channels"),
+                                     trailing: mode == .visibility ? (hidden ? String(localized: "Hidden") : nil) : nil,
                                      trailingIcon: mode == .visibility ? (hidden ? "eye.slash" : "eye") : "chevron.right",
                                      selected: group.id == currentGroup,
                                      dimmed: hidden)
@@ -548,13 +588,13 @@ struct ChannelBrowser: View {
                             Button {
                                 settings.prefs.hiddenChannelIDs.subtract(channels.map(\.id))
                             } label: {
-                                PillLabel(title: "Show all", icon: "eye")
+                                PillLabel(title: String(localized: "Show all"), icon: "eye")
                             }
                             .buttonStyle(PlainPressStyle())
                             Button {
                                 settings.prefs.hiddenChannelIDs.formUnion(channels.map(\.id))
                             } label: {
-                                PillLabel(title: "Hide all", icon: "eye.slash")
+                                PillLabel(title: String(localized: "Hide all"), icon: "eye.slash")
                             }
                             .buttonStyle(PlainPressStyle())
                         }
@@ -590,7 +630,7 @@ struct ChannelBrowser: View {
                 }
             } label: {
                 ListRowLabel(title: channel.name, logoURL: logo, showsLogo: true,
-                             trailing: hidden ? "Hidden" : nil,
+                             trailing: hidden ? String(localized: "Hidden") : nil,
                              trailingIcon: hidden ? "eye.slash" : "eye",
                              dimmed: hidden || groupHidden)
             }
@@ -601,7 +641,7 @@ struct ChannelBrowser: View {
                 toggleInFolder(channel.id)
             } label: {
                 ListRowLabel(title: channel.name, logoURL: logo, showsLogo: true,
-                             trailing: included ? "In folder" : nil,
+                             trailing: included ? String(localized: "In folder") : nil,
                              trailingIcon: included ? "checkmark.circle.fill" : "circle")
             }
             .buttonStyle(PlainPressStyle())
@@ -629,7 +669,7 @@ struct ChannelBrowser: View {
 
     private func load() async {
         guard settings.xtream.isConfigured else {
-            error = "Add your IPTV login in Settings → Connections first."
+            error = String(localized: "Add your IPTV login in Settings → Connections first.")
             loading = false
             return
         }
@@ -669,7 +709,7 @@ struct FoldersSettingsView: View {
                 GlassPanel("Folders") {
                     ForEach(settings.prefs.folders) { folder in
                         SettingsLinkRow(folder.name, icon: "square.stack.3d.up",
-                                        value: "\(folder.channelIDs.count) channels") {
+                                        value: String(localized: "\(folder.channelIDs.count) channels")) {
                             FolderDetailView(folderID: folder.id)
                         }
                     }
@@ -678,7 +718,7 @@ struct FoldersSettingsView: View {
             SettingsNote("Folders are your own Live TV groups. A channel can be in several folders and stays in its original group too. You can also long-press any channel in Live TV to add it to a folder.")
         }
         .sheet(isPresented: $naming) {
-            NameSheet(title: "New folder") { name in
+            NameSheet(title: String(localized: "New folder")) { name in
                 settings.prefs.folders.append(ChannelFolder(id: UUID().uuidString, name: name, channelIDs: []))
             }
         }
@@ -699,7 +739,7 @@ struct FolderDetailView: View {
     }
 
     var body: some View {
-        SettingsPage(folder?.name ?? "Folder") {
+        SettingsPage(folder?.name ?? String(localized: "Folder")) {
             GlassPanel {
                 SettingsLinkRow("Add or remove channels", icon: "plus.circle") {
                     ChannelBrowser(mode: .folder(folderID))
@@ -714,7 +754,7 @@ struct FolderDetailView: View {
                         Button {
                             selected = channelID
                         } label: {
-                            ListRowLabel(title: names[channelID]?.name ?? "Channel \(channelID)",
+                            ListRowLabel(title: names[channelID]?.name ?? String(localized: "Channel \(channelID)"),
                                          logoURL: names[channelID]?.icon.flatMap { URL(string: $0) },
                                          showsLogo: true,
                                          trailingIcon: "ellipsis")
@@ -733,7 +773,7 @@ struct FolderDetailView: View {
             names = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         }
         .sheet(isPresented: $renaming) {
-            NameSheet(title: "Rename folder", initial: folder?.name ?? "") { name in
+            NameSheet(title: String(localized: "Rename folder"), initial: folder?.name ?? "") { name in
                 update { folder in folder.name = name }
             }
         }
@@ -747,7 +787,7 @@ struct FolderDetailView: View {
             Text("The channels stay in their original groups.")
         }
         .confirmationDialog(
-            selected.map { names[$0]?.name ?? "Channel \($0)" } ?? "",
+            selected.map { names[$0]?.name ?? String(localized: "Channel \($0)") } ?? "",
             isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } }),
             titleVisibility: .visible,
             presenting: selected
@@ -816,9 +856,9 @@ struct PlayerSettingsView: View {
 
             GlassPanel("Remote") {
                 SettingsOptionRow("Skip back", icon: "gobackward", selection: $settings.prefs.seekBackSeconds,
-                                  options: Self.seekOptions.map { ($0, "\($0) seconds") })
+                                  options: Self.seekOptions.map { ($0, String(localized: "\($0) seconds")) })
                 SettingsOptionRow("Skip forward", icon: "goforward", selection: $settings.prefs.seekForwardSeconds,
-                                  options: Self.seekOptions.map { ($0, "\($0) seconds") })
+                                  options: Self.seekOptions.map { ($0, String(localized: "\($0) seconds")) })
             }
 
             GlassPanel("Video") {
@@ -883,7 +923,7 @@ struct HomeScreenSettingsView: View {
                         selected = row
                     } label: {
                         ListRowLabel(title: row.title, icon: "line.3.horizontal",
-                                     trailing: hidden ? "Hidden" : "Shown",
+                                     trailing: hidden ? String(localized: "Hidden") : String(localized: "Shown"),
                                      trailingIcon: hidden ? "eye.slash" : "eye",
                                      dimmed: hidden)
                     }
@@ -960,7 +1000,7 @@ struct SportsSettingsView: View {
         SettingsPage("Sports") {
             GlassPanel {
                 SettingsOptionRow("Show fixtures for the next", icon: "calendar", selection: $settings.prefs.sportsDaysAhead,
-                                  options: [(7, "7 days"), (14, "14 days"), (30, "30 days")])
+                                  options: [(7, String(localized: "7 days")), (14, String(localized: "14 days")), (30, String(localized: "30 days"))])
                 SettingsLinkRow("My teams", icon: "star", value: "\(settings.prefs.favouriteTeams.count)") {
                     TeamsManagerView()
                 }
@@ -979,9 +1019,9 @@ struct CalendarSettingsView: View {
         SettingsPage("Calendar") {
             GlassPanel {
                 SettingsOptionRow("Episodes per series", icon: "list.number", selection: $settings.prefs.calendarEpisodesPerSeries,
-                                  options: [(1, "Next episode only"), (2, "Next 2 episodes"), (3, "Next 3 episodes"), (5, "Next 5 episodes")])
+                                  options: [(1, String(localized: "Next episode only")), (2, String(localized: "Next 2 episodes")), (3, String(localized: "Next 3 episodes")), (5, String(localized: "Next 5 episodes"))])
                 SettingsOptionRow("Look ahead", icon: "calendar", selection: $settings.prefs.calendarDaysAhead,
-                                  options: [(30, "30 days"), (60, "60 days"), (90, "90 days"), (180, "6 months")])
+                                  options: [(30, String(localized: "30 days")), (60, String(localized: "60 days")), (90, String(localized: "90 days")), (180, String(localized: "6 months"))])
             }
             SettingsNote("The calendar lists upcoming episodes of the series in My List. Episodes that have already aired are never shown.")
         }

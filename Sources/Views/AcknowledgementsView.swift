@@ -21,7 +21,7 @@ struct Acknowledgement: Identifiable {
     var text: String {
         guard let url = Bundle.main.url(forResource: "License-\(file)", withExtension: "txt"),
               let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return "The licence text is missing from this build."
+            return String(localized: "The licence text is missing from this build.")
         }
         return text
     }
@@ -38,23 +38,23 @@ struct Acknowledgement: Identifiable {
     }()
 
     static let all: [Acknowledgement] = [
-        Acknowledgement(name: "AetherEngine", detail: "Video player engine",
+        Acknowledgement(name: "AetherEngine", detail: String(localized: "Video player engine"),
                         licence: "LGPL-3.0 + App Store exception", file: "AetherEngine",
                         versionKey: "aetherengine", source: "github.com/superuser404notfound/AetherEngine"),
-        Acknowledgement(name: "FFmpeg", detail: "Video and audio decoding", licence: "LGPL-2.1+",
+        Acknowledgement(name: "FFmpeg", detail: String(localized: "Video and audio decoding"), licence: "LGPL-2.1+",
                         file: "FFmpeg", versionKey: "ffmpegbuild",
                         source: "github.com/superuser404notfound/FFmpegBuild"),
-        Acknowledgement(name: "dav1d", detail: "AV1 decoding", licence: "BSD-2-Clause", file: "dav1d",
+        Acknowledgement(name: "dav1d", detail: String(localized: "AV1 decoding"), licence: "BSD-2-Clause", file: "dav1d",
                         versionKey: "ffmpegbuild", source: "github.com/superuser404notfound/FFmpegBuild"),
-        Acknowledgement(name: "zimg", detail: "Scaling", licence: "WTFPL", file: "zimg",
+        Acknowledgement(name: "zimg", detail: String(localized: "Scaling"), licence: "WTFPL", file: "zimg",
                         versionKey: "ffmpegbuild", source: "github.com/superuser404notfound/FFmpegBuild"),
-        Acknowledgement(name: "libzvbi", detail: "Teletext subtitles", licence: "LGPL-2.1 · MIT", file: "libzvbi",
+        Acknowledgement(name: "libzvbi", detail: String(localized: "Teletext subtitles"), licence: "LGPL-2.1 · MIT", file: "libzvbi",
                         versionKey: "ffmpegbuild", source: "github.com/superuser404notfound/FFmpegBuild"),
         Acknowledgement(name: "libdovi", detail: "© quietvoid and contributors", licence: "MIT", file: "libdovi",
                         versionKey: "libdovi", source: "github.com/quietvoid/dovi_tool"),
         Acknowledgement(name: "Anime4K", detail: "© 2019-2021 bloc97", licence: "MIT", file: "Anime4K",
                         source: "github.com/bloc97/Anime4K"),
-        Acknowledgement(name: "Sentry", detail: "Crash reports · © 2015 Sentry", licence: "MIT", file: "Sentry",
+        Acknowledgement(name: "Sentry", detail: String(localized: "Crash reports · © 2015 Sentry"), licence: "MIT", file: "Sentry",
                         versionKey: "sentry-cocoa", source: "github.com/getsentry/sentry-cocoa"),
     ]
 }
@@ -73,8 +73,8 @@ struct AcknowledgementsView: View {
                 // TMDB asks for this credit; a selectable row so the remote can reach it.
                 Button {} label: {
                     ListRowLabel(title: "TMDB",
-                                 subtitle: "Film & TV information and artwork. This product uses the TMDB API but is not endorsed or certified by TMDB.",
-                                 trailing: "Data")
+                                 subtitle: String(localized: "Film & TV information and artwork. This product uses the TMDB API but is not endorsed or certified by TMDB."),
+                                 trailing: String(localized: "Data"))
                 }
                 .buttonStyle(PlainPressStyle())
                 Rectangle()
@@ -102,7 +102,7 @@ struct AcknowledgementsView: View {
     private var sourceNote: String {
         let engine = Acknowledgement.versions["aetherengine"].map { " (\($0))" } ?? ""
         let ffmpeg = Acknowledgement.versions["ffmpegbuild"].map { " (\($0))" } ?? ""
-        return "Source code: github.com/superuser404notfound/AetherEngine\(engine) and /FFmpegBuild\(ffmpeg)."
+        return String(localized: "Source code: github.com/superuser404notfound/AetherEngine\(engine) and /FFmpegBuild\(ffmpeg).")
     }
 }
 
@@ -121,7 +121,7 @@ struct LicenceTextView: View {
     var body: some View {
         SettingsPage(item.name) {
             VStack(alignment: .leading, spacing: 6) {
-                Text([item.licence, item.version.map { "version \($0)" }].compactMap { $0 }.joined(separator: " · "))
+                Text([item.licence, item.version.map { String(localized: "version \($0)") }].compactMap { $0 }.joined(separator: " · "))
                 if let source = item.source {
                     Text("Source: \(source)")
                 }

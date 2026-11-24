@@ -763,13 +763,13 @@ struct F1Client {
                 sessions.append(Fixture.Session(name: name, date: date))
             }
         }
-        add("Practice 1", race.firstPractice)
-        add("Practice 2", race.secondPractice)
-        add("Practice 3", race.thirdPractice)
-        add("Sprint Qualifying", race.sprintQualifying)
-        add("Sprint", race.sprint)
-        add("Qualifying", race.qualifying)
-        sessions.append(Fixture.Session(name: "Race", date: raceDate))
+        add(String(localized: "Practice 1"), race.firstPractice)
+        add(String(localized: "Practice 2"), race.secondPractice)
+        add(String(localized: "Practice 3"), race.thirdPractice)
+        add(String(localized: "Sprint Qualifying"), race.sprintQualifying)
+        add(String(localized: "Sprint"), race.sprint)
+        add(String(localized: "Qualifying"), race.qualifying)
+        sessions.append(Fixture.Session(name: String(localized: "Race"), date: raceDate))
         sessions.sort { $0.date < $1.date }
 
         let locality = race.circuit?.location?.locality

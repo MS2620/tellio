@@ -31,34 +31,34 @@ enum Catalog {
     }
 
     private static let movieGenres: [(String, Int)] = [
-        ("Action", 28), ("Comedy", 35), ("Thriller", 53), ("Horror", 27),
-        ("Science Fiction", 878), ("Drama", 18), ("Animation", 16), ("Family", 10751),
-        ("Crime", 80), ("Romance", 10749), ("Documentary", 99),
+        (String(localized: "Action"), 28), (String(localized: "Comedy"), 35), (String(localized: "Thriller"), 53), (String(localized: "Horror"), 27),
+        (String(localized: "Science Fiction"), 878), (String(localized: "Drama"), 18), (String(localized: "Animation"), 16), (String(localized: "Family"), 10751),
+        (String(localized: "Crime"), 80), (String(localized: "Romance"), 10749), (String(localized: "Documentary"), 99),
     ]
 
     private static let seriesGenres: [(String, Int)] = [
-        ("Drama", 18), ("Comedy", 35), ("Crime", 80), ("Action & Adventure", 10759),
-        ("Sci-Fi & Fantasy", 10765), ("Mystery", 9648), ("Animation", 16),
-        ("Documentary", 99), ("Reality", 10764), ("Kids", 10762),
+        (String(localized: "Drama"), 18), (String(localized: "Comedy"), 35), (String(localized: "Crime"), 80), (String(localized: "Action & Adventure"), 10759),
+        (String(localized: "Sci-Fi & Fantasy"), 10765), (String(localized: "Mystery"), 9648), (String(localized: "Animation"), 16),
+        (String(localized: "Documentary"), 99), (String(localized: "Reality"), 10764), (String(localized: "Kids"), 10762),
     ]
 
-    static let trendingMovies = CatalogSection(id: "Trending Movies", style: .ranked) { try await $0.trending(.movie) }
-    static let trendingSeries = CatalogSection(id: "Trending Series", style: .ranked) { try await $0.trending(.tv) }
+    static let trendingMovies = CatalogSection(id: String(localized: "Trending Movies"), style: .ranked) { try await $0.trending(.movie) }
+    static let trendingSeries = CatalogSection(id: String(localized: "Trending Series"), style: .ranked) { try await $0.trending(.tv) }
 
     static let movies: [CatalogSection] = [
-        CatalogSection(id: "Popular") { try await $0.popular(.movie) },
-        CatalogSection(id: "Now Playing", style: .landscape) { try await $0.list("movie/now_playing", type: .movie) },
-        CatalogSection(id: "Upcoming") { try await $0.list("movie/upcoming", type: .movie) },
-        CatalogSection(id: "Top Rated") { try await $0.list("movie/top_rated", type: .movie) },
+        CatalogSection(id: String(localized: "Popular")) { try await $0.popular(.movie) },
+        CatalogSection(id: String(localized: "Now Playing"), style: .landscape) { try await $0.list("movie/now_playing", type: .movie) },
+        CatalogSection(id: String(localized: "Upcoming")) { try await $0.list("movie/upcoming", type: .movie) },
+        CatalogSection(id: String(localized: "Top Rated")) { try await $0.list("movie/top_rated", type: .movie) },
     ] + movieGenres.map { name, id in
         CatalogSection(id: name) { try await $0.discover(.movie, genre: id) }
     }
 
     static let series: [CatalogSection] = [
-        CatalogSection(id: "Popular") { try await $0.popular(.tv) },
-        CatalogSection(id: "Airing Today", style: .landscape) { try await $0.list("tv/airing_today", type: .tv) },
-        CatalogSection(id: "On The Air") { try await $0.list("tv/on_the_air", type: .tv) },
-        CatalogSection(id: "Top Rated") { try await $0.list("tv/top_rated", type: .tv) },
+        CatalogSection(id: String(localized: "Popular")) { try await $0.popular(.tv) },
+        CatalogSection(id: String(localized: "Airing Today"), style: .landscape) { try await $0.list("tv/airing_today", type: .tv) },
+        CatalogSection(id: String(localized: "On The Air")) { try await $0.list("tv/on_the_air", type: .tv) },
+        CatalogSection(id: String(localized: "Top Rated")) { try await $0.list("tv/top_rated", type: .tv) },
     ] + seriesGenres.map { name, id in
         CatalogSection(id: name) { try await $0.discover(.tv, genre: id) }
     }
@@ -83,7 +83,7 @@ extension HeroContent {
         chips += item.genreNames
         if let rating = item.rating { chips.append("★ \(rating)") }
         self.init(key: "\(row)|\(item.uid)",
-                  kicker: (item.kind == .movie ? "MOVIE" : "SERIES") + " · " + row.uppercased(),
+                  kicker: (item.kind == .movie ? String(localized: "MOVIE") : String(localized: "SERIES")) + " · " + row.uppercased(),
                   title: item.displayTitle,
                   chips: chips,
                   overview: item.overview ?? "",
@@ -228,7 +228,7 @@ struct CatalogView: View {
     // MARK: Banner on open
 
     private var defaultHeroKey: String {
-        "\(mode)|\(settings.tmdbToken.count)|\(settings.prefs.tmdbLanguage)|\(settings.homeRowOrder.map(\.rawValue))"
+        "\(mode)|\(settings.tmdbToken.count)|\(settings.prefs.catalogueLanguageInUse)|\(settings.homeRowOrder.map(\.rawValue))"
     }
 
     private func myListItems(_ kind: MediaType?) -> [TMDBItem] {
@@ -249,7 +249,7 @@ struct CatalogView: View {
             }
             for row in settings.visibleHomeRows {
                 if row == .myList, let first = myListItems(nil).first {
-                    pending = HeroContent(item: first, row: "My List")
+                    pending = HeroContent(item: first, row: String(localized: "My List"))
                     return
                 }
                 if let section = Catalog.homeSection(row) { sections.append(section) }
@@ -258,7 +258,7 @@ struct CatalogView: View {
             sections = [Catalog.trendingMovies]
         case .series:
             if let first = myListItems(.tv).first {
-                pending = HeroContent(item: first, row: "My List")
+                pending = HeroContent(item: first, row: String(localized: "My List"))
                 return
             }
             sections = [Catalog.trendingSeries]
@@ -372,8 +372,8 @@ private struct MyListRow: View {
         if items.isEmpty {
             Color.clear.frame(height: 1)
         } else {
-            RailView(title: "My List", items: items, onFocus: { item in
-                onFocus(HeroContent(item: item, row: "My List"))
+            RailView(title: String(localized: "My List"), items: items, onFocus: { item in
+                onFocus(HeroContent(item: item, row: String(localized: "My List")))
             })
         }
     }
@@ -388,7 +388,7 @@ private struct LazyRail: View {
     @State private var items: [TMDBItem]?
 
     private var reloadKey: String {
-        settings.tmdbToken + settings.prefs.tmdbLanguage + settings.prefs.tmdbRegion
+        settings.tmdbToken + settings.prefs.catalogueLanguageInUse + settings.prefs.tmdbRegion
     }
 
     var body: some View {
@@ -688,7 +688,7 @@ private struct FavouriteChannelsRow: View {
                     .focusRow()
                     .scrollClipDisabled()
                     .overlay(alignment: .topLeading) {
-                        RowTitle(text: "Favourite Channels", inset: 90)
+                        RowTitle(text: String(localized: "Favourite Channels"), inset: 90)
                     }
             } else {
                 Color.clear.frame(height: 1)
@@ -697,7 +697,7 @@ private struct FavouriteChannelsRow: View {
         .task(id: settings.prefs.favouriteChannelIDs) { await load() }
         .onChange(of: focusedID) { _, id in
             guard let id, let channel = channels.first(where: { $0.id == id }) else { return }
-            onFocus(HeroContent(key: "channel-\(id)", kicker: "LIVE TV · FAVOURITE CHANNEL", title: channel.name))
+            onFocus(HeroContent(key: "channel-\(id)", kicker: String(localized: "LIVE TV · FAVOURITE CHANNEL"), title: channel.name))
         }
         .fullScreenCover(item: $playback) { request in
             PlayerView(request: request).ignoresSafeArea()
@@ -722,7 +722,7 @@ private struct FavouriteChannelsRow: View {
             url: url,
             title: channel.name,
             artworkURL: channel.icon.flatMap { URL(string: $0) },
-            sourceName: "Favourites",
+            sourceName: String(localized: "Favourites"),
             isLive: true,
             httpHeaders: client.requestHeaders,
             live: LiveContext(channels: channels, index: index)
@@ -763,7 +763,7 @@ private struct UpcomingFixturesRow: View {
                     .focusRow()
                     .scrollClipDisabled()
                     .overlay(alignment: .topLeading) {
-                        RowTitle(text: "My Teams", inset: 90)
+                        RowTitle(text: String(localized: "My Teams"), inset: 90)
                     }
             } else {
                 Color.clear.frame(height: 1)
@@ -819,7 +819,7 @@ private struct ProviderMoviesRow: View {
                     .focusRow()
                     .scrollClipDisabled()
                     .overlay(alignment: .topLeading) {
-                        RowTitle(text: "From Your Provider · Recently Added", inset: 90)
+                        RowTitle(text: String(localized: "From Your Provider · Recently Added"), inset: 90)
                     }
             } else {
                 Color.clear.frame(height: 1)
@@ -831,7 +831,7 @@ private struct ProviderMoviesRow: View {
         }
         .onChange(of: focusedID) { _, id in
             guard let id, let movie = movies.first(where: { $0.id == id }) else { return }
-            onFocus(HeroContent(key: "vod-\(id)", kicker: "MOVIE · FROM YOUR PROVIDER", title: movie.name))
+            onFocus(HeroContent(key: "vod-\(id)", kicker: String(localized: "MOVIE · FROM YOUR PROVIDER"), title: movie.name))
         }
         .fullScreenCover(item: $playback) { request in
             PlayerView(request: request).ignoresSafeArea()
@@ -841,7 +841,7 @@ private struct ProviderMoviesRow: View {
     private func play(_ movie: XtreamVOD) {
         let client = settings.xtreamClient
         guard let url = client.movieURL(for: movie) else { return }
-        playback = PlaybackRequest(url: url, title: movie.name, sourceName: "Provider",
+        playback = PlaybackRequest(url: url, title: movie.name, sourceName: String(localized: "Provider"),
                                    httpHeaders: client.requestHeaders)
     }
 }
@@ -874,7 +874,7 @@ private struct ProviderSeriesRow: View {
                     .focusRow()
                     .scrollClipDisabled()
                     .overlay(alignment: .topLeading) {
-                        RowTitle(text: "From Your Provider · Recently Updated", inset: 90)
+                        RowTitle(text: String(localized: "From Your Provider · Recently Updated"), inset: 90)
                     }
             } else {
                 Color.clear.frame(height: 1)
@@ -886,7 +886,7 @@ private struct ProviderSeriesRow: View {
         }
         .onChange(of: focusedID) { _, id in
             guard let id, let show = series.first(where: { $0.id == id }) else { return }
-            onFocus(HeroContent(key: "pseries-\(id)", kicker: "SERIES · FROM YOUR PROVIDER",
+            onFocus(HeroContent(key: "pseries-\(id)", kicker: String(localized: "SERIES · FROM YOUR PROVIDER"),
                                 title: show.name, overview: show.plot ?? ""))
         }
     }
@@ -950,7 +950,7 @@ struct ProviderSeriesView: View {
                                 Button {
                                     season = number
                                 } label: {
-                                    PillLabel(title: "Season \(number)", selected: number == season)
+                                    PillLabel(title: String(localized: "Season \(number)"), selected: number == season)
                                 }
                                 .buttonStyle(PlainPressStyle())
                             }
@@ -996,7 +996,7 @@ struct ProviderSeriesView: View {
             title: series.name,
             subtitle: "S\(episode.season)E\(episode.number) · \(episode.title)",
             overview: episode.plot,
-            sourceName: "Provider",
+            sourceName: String(localized: "Provider"),
             httpHeaders: client.requestHeaders
         )
     }
@@ -1058,14 +1058,14 @@ struct ContinueWatchingRow: View {
             let target = StreamTarget.episode(item: item, imdbID: imdbID, season: next.season, episode: next.episode,
                                               name: next.name, overview: next.overview)
             let hero = HeroContent(key: "continue|\(item.uid)|next",
-                                   kicker: "CONTINUE WATCHING · UP NEXT",
+                                   kicker: String(localized: "CONTINUE WATCHING · UP NEXT"),
                                    title: item.displayTitle,
                                    chips: ["S\(next.season) · E\(next.episode)"] + [next.name].compactMap { $0 },
                                    overview: next.overview ?? item.overview ?? "",
                                    imageURL: item.backdropURL)
             return Card(id: "next-\(item.uid)", entry: entry, target: target,
-                        line: "Next: S\(next.season) · E\(next.episode)", fraction: nil,
-                        badge: next.isNew ? "NEW EPISODE" : "UP NEXT",
+                        line: String(localized: "Next: S\(next.season) · E\(next.episode)"), fraction: nil,
+                        badge: next.isNew ? String(localized: "NEW EPISODE") : String(localized: "UP NEXT"),
                         imageURL: next.stillURL ?? item.backdropURL, hero: hero)
         }
         .prefix(20)
@@ -1076,7 +1076,7 @@ struct ContinueWatchingRow: View {
         var chips = [entry.episodeLabel, entry.timeLeftLabel].compactMap { $0 }
         if let name = entry.context.episodeName { chips.append(name) }
         return HeroContent(key: "continue|\(entry.id)",
-                           kicker: "CONTINUE WATCHING",
+                           kicker: String(localized: "CONTINUE WATCHING"),
                            title: entry.item.displayTitle,
                            chips: chips,
                            overview: entry.item.overview ?? "",
@@ -1123,7 +1123,7 @@ struct ContinueWatchingRow: View {
                 .focusRow()
                 .scrollClipDisabled()
                 .overlay(alignment: .topLeading) {
-                    RowTitle(text: "Continue Watching", inset: 90)
+                    RowTitle(text: String(localized: "Continue Watching"), inset: 90)
                 }
             }
         }

@@ -14,13 +14,13 @@ struct BackupView: View {
     var body: some View {
         SettingsPage("Backup & restore") {
             GlassPanel("Your backup server") {
-                TypingRow(title: "Server", icon: "server.rack",
-                          value: backup.serverURL.isEmpty ? "Not set" : backup.serverURL,
+                TypingRow(title: String(localized: "Server"), icon: "server.rack",
+                          value: backup.serverURL.isEmpty ? String(localized: "Not set") : backup.serverURL,
                           initial: backup.serverURL) {
                     backup.serverURL = $0
                     serverOK = nil
                 }
-                TypingRow(title: "Password", icon: "lock", value: backup.password.isEmpty ? "Not set" : "••••••",
+                TypingRow(title: String(localized: "Password"), icon: "lock", value: backup.password.isEmpty ? String(localized: "Not set") : "••••••",
                           initial: backup.password, secure: true) {
                     backup.password = $0
                     serverOK = nil
@@ -29,8 +29,8 @@ struct BackupView: View {
                     Button {
                         Task { serverOK = await backup.checkServer() }
                     } label: {
-                        ListRowLabel(title: "Check connection", icon: "checkmark.circle",
-                                     trailing: serverOK.map { $0 ? "Working" : "Not reachable" })
+                        ListRowLabel(title: String(localized: "Check connection"), icon: "checkmark.circle",
+                                     trailing: serverOK.map { $0 ? String(localized: "Working") : String(localized: "Not reachable") })
                     }
                     .buttonStyle(PlainPressStyle())
                 }
@@ -41,19 +41,19 @@ struct BackupView: View {
                 Button {
                     Task { await runBackup() }
                 } label: {
-                    ListRowLabel(title: working ? "Working…" : "Back up to a code",
-                                 subtitle: "Logins, addons, My List, teams, watch history, reminders, Trakt and settings",
+                    ListRowLabel(title: working ? String(localized: "Working…") : String(localized: "Back up to a code"),
+                                 subtitle: String(localized: "Logins, addons, My List, teams, watch history, reminders, Trakt and settings"),
                                  icon: "square.and.arrow.up")
                 }
                 .buttonStyle(PlainPressStyle())
                 .disabled(!backup.isConfigured || working)
 
-                TypingRow(title: "Restore from a code", icon: "square.and.arrow.down", value: "",
+                TypingRow(title: String(localized: "Restore from a code"), icon: "square.and.arrow.down", value: "",
                           initial: "") { pendingCode = $0 }
                     .disabled(!backup.isConfigured || working)
 
                 if let code = backup.lastCode, let date = backup.lastDate {
-                    ListRowLabel(title: "Last backup", icon: "clock",
+                    ListRowLabel(title: String(localized: "Last backup"), icon: "clock",
                                  trailing: "\(code) · \(date.formatted(.relative(presentation: .named)))", dimmed: true)
                 }
             }
@@ -113,7 +113,7 @@ struct BackupView: View {
         do {
             newCode = try await backup.backUp(settings: settings)
         } catch {
-            message = "Backup failed: \(error.localizedDescription)"
+            message = String(localized: "Backup failed: \(error.localizedDescription)")
         }
     }
 
@@ -124,9 +124,9 @@ struct BackupView: View {
         do {
             try await backup.restore(code: code, settings: settings)
             newCode = nil
-            message = "Restored. Everything from the backup is in place."
+            message = String(localized: "Restored. Everything from the backup is in place.")
         } catch {
-            message = "Restore failed: \(error.localizedDescription)"
+            message = String(localized: "Restore failed: \(error.localizedDescription)")
         }
     }
 }

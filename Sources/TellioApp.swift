@@ -96,19 +96,20 @@ struct RootView: View {
 
     private var tabs: some View {
         TabView(selection: $tab) {
-            Tab("Home", systemImage: "house", value: AppTab.home) {
+            Tab(String(localized: "tab.home", defaultValue: "Home", comment: "Tab bar: keep it short, or the icon tabs are pushed off the bar"), systemImage: "house", value: AppTab.home) {
                 CatalogView(mode: .home)
             }
-            Tab("Movies", systemImage: "film", value: AppTab.movies) {
+            Tab(String(localized: "tab.movies", defaultValue: "Movies", comment: "Tab bar: keep it short, or the icon tabs are pushed off the bar"), systemImage: "film", value: AppTab.movies) {
                 CatalogView(mode: .movies)
             }
-            Tab("Series", systemImage: "play.tv", value: AppTab.series) {
+            Tab(String(localized: "tab.series", defaultValue: "Series", comment: "Tab bar: keep it short, or the icon tabs are pushed off the bar"), systemImage: "play.tv", value: AppTab.series) {
                 CatalogView(mode: .series)
             }
-            Tab("Live TV", systemImage: "antenna.radiowaves.left.and.right", value: AppTab.live) {
+            Tab(String(localized: "tab.liveTV", defaultValue: "Live TV", comment: "Tab bar: keep it short, or the icon tabs are pushed off the bar"), systemImage: "antenna.radiowaves.left.and.right", value: AppTab.live) {
                 LiveTVView()
             }
             // Sports, Calendar, Search and Settings show only their icon, which keeps the bar on one line.
+            // The text tabs have their own short translations (tab.*) for the same reason.
             Tab(value: AppTab.sports) {
                 SportsView()
             } label: {

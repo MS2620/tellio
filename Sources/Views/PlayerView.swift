@@ -50,7 +50,7 @@ struct PlayerView: View {
         } else {
             ZStack {
                 Color.black.ignoresSafeArea()
-                Text("Player failed to start: \(player.initError ?? "unknown error")")
+                Text("Player failed to start: \(player.initError ?? String(localized: "unknown error"))")
             }
         }
     }
@@ -64,11 +64,11 @@ private enum Panel: Identifiable {
 
     var title: String {
         switch self {
-        case .channels: return "Channels"
-        case .subtitles: return "Subtitles"
-        case .audio: return "Audio"
-        case .stats: return "Playback stats"
-        case .more: return "More"
+        case .channels: return String(localized: "Channels")
+        case .subtitles: return String(localized: "Subtitles")
+        case .audio: return String(localized: "Audio")
+        case .stats: return String(localized: "Playback stats")
+        case .more: return String(localized: "More")
         }
     }
 }
@@ -474,7 +474,7 @@ private struct AetherPlaybackView: View {
 
     private var frameRateLabel: String? {
         guard let fps = engine.sourceVideoFrameRate, fps > 0 else { return nil }
-        return abs(fps - fps.rounded()) < 0.01 ? "\(Int(fps.rounded())) fps" : String(format: "%.2f fps", fps)
+        return abs(fps - fps.rounded()) < 0.01 ? String(localized: "\(Int(fps.rounded())) fps") : String(format: "%.2f fps", fps)
     }
 
     private var resolutionLabel: String? {
@@ -487,13 +487,13 @@ private struct AetherPlaybackView: View {
     /// "Upscaling 720p → 4K" while the stage runs; a plain pill when it was asked for but isn't running.
     private var upscaleBadge: Badge? {
         if let upscale = engine.activeUpscale, upscale.disabledReason == nil {
-            let from = Self.sizeLabel(upscale.sourceSize) ?? "Video"
-            let to = Self.sizeLabel(upscale.targetSize) ?? "screen"
-            return .upscaling("Upscaling \(from) → \(to)")
+            let from = Self.sizeLabel(upscale.sourceSize) ?? String(localized: "Video")
+            let to = Self.sizeLabel(upscale.targetSize) ?? String(localized: "screen")
+            return .upscaling(String(localized: "Upscaling \(from) → \(to)"))
         }
         guard upscaleRequested else { return nil }
-        if engine.activeUpscale?.disabledReason != nil { return .plain("Upscaling stopped") }
-        if upscaleLog.skipReason != nil { return .plain("Not upscaled") }
+        if engine.activeUpscale?.disabledReason != nil { return .plain(String(localized: "Upscaling stopped")) }
+        if upscaleLog.skipReason != nil { return .plain(String(localized: "Not upscaled")) }
         return nil
     }
 
@@ -586,18 +586,18 @@ private struct AetherPlaybackView: View {
         case .stats:
             return []
         case .subtitles:
-            var options = [PanelOption(id: "off", title: "Off",
+            var options = [PanelOption(id: "off", title: String(localized: "Off"),
                                        selected: engine.activeSubtitleTrackIndex == nil && activeAddonSubtitle == nil) {
                 engine.clearSubtitle()
                 activeAddonSubtitle = nil
                 closePanel()
             }]
             if !engine.subtitleTracks.isEmpty {
-                options.append(PanelOption(id: "h-video", title: "IN THIS VIDEO", isHeader: true) {})
+                options.append(PanelOption(id: "h-video", title: String(localized: "IN THIS VIDEO"), isHeader: true) {})
             }
             options += engine.subtitleTracks.map { track in
                 PanelOption(id: "sub-\(track.id)", title: Self.trackTitle(track),
-                            detail: track.isForced ? "Forced" : (track.isHearingImpaired ? "SDH" : nil),
+                            detail: track.isForced ? String(localized: "Forced") : (track.isHearingImpaired ? "SDH" : nil),
                             selected: activeAddonSubtitle == nil && track.id == engine.activeSubtitleTrackIndex) {
                     activeAddonSubtitle = nil
                     engine.selectSubtitleTrack(index: track.id)
@@ -607,12 +607,12 @@ private struct AetherPlaybackView: View {
             if current.watch != nil && !settings.addons.isEmpty {
                 let subtitles = addonSubtitles ?? []
                 let names = Array(Set(subtitles.map(\.addonName))).sorted()
-                let heading = names.isEmpty ? "FROM ADDONS" : "FROM ADDONS · " + names.joined(separator: ", ").uppercased()
+                let heading = names.isEmpty ? String(localized: "FROM ADDONS") : String(localized: "FROM ADDONS · \(names.joined(separator: ", ").uppercased())")
                 options.append(PanelOption(id: "h-addons", title: heading, isHeader: true) {})
                 if addonSubtitles == nil {
-                    options.append(PanelOption(id: "h-loading", title: "Looking for subtitles…", isHeader: true) {})
+                    options.append(PanelOption(id: "h-loading", title: String(localized: "Looking for subtitles…"), isHeader: true) {})
                 } else if subtitles.isEmpty {
-                    options.append(PanelOption(id: "h-none", title: "None found. Add a subtitles addon such as OpenSubtitles v3 in Settings › Connections.", isHeader: true) {})
+                    options.append(PanelOption(id: "h-none", title: String(localized: "None found. Add a subtitles addon such as OpenSubtitles v3 in Settings › Connections."), isHeader: true) {})
                 }
                 // Several files per language: number them so they can be told apart.
                 var counts: [String: Int] = [:]
@@ -656,18 +656,18 @@ private struct AetherPlaybackView: View {
             if current.live != nil {
                 var options: [PanelOption] = []
                 if engine.canSeek {
-                    options.append(PanelOption(id: "live-edge", title: "Jump to live") {
+                    options.append(PanelOption(id: "live-edge", title: String(localized: "Jump to live")) {
                         Task { await engine.seekToLiveEdge() }
                         closePanel()
                     })
                 }
-                options.append(PanelOption(id: "reload", title: "Reload channel") {
+                options.append(PanelOption(id: "reload", title: String(localized: "Reload channel")) {
                     reload()
                     closePanel()
                 })
                 if let live = current.live, live.channels.indices.contains(live.index) {
                     let channel = live.channels[live.index]
-                    options.append(PanelOption(id: "multiview", title: "Watch in multiview") {
+                    options.append(PanelOption(id: "multiview", title: String(localized: "Watch in multiview")) {
                         closePanel()
                         // Opens once the player has closed.
                         MultiviewStore.shared.add(channel, openAfter: .milliseconds(600))
@@ -676,12 +676,12 @@ private struct AetherPlaybackView: View {
                 }
                 return options
             } else {
-                var options = [PanelOption(id: "restart", title: "Restart from the beginning") {
+                var options = [PanelOption(id: "restart", title: String(localized: "Restart from the beginning")) {
                     Task { await engine.seek(to: 0) }
                     closePanel()
                 }]
                 for speed: Float in [0.75, 1, 1.25, 1.5, 2] {
-                    options.append(PanelOption(id: "speed-\(speed)", title: "Speed \(Self.speedLabel(speed))",
+                    options.append(PanelOption(id: "speed-\(speed)", title: String(localized: "Speed \(Self.speedLabel(speed))"),
                                                selected: speed == rate) {
                         rate = speed
                         engine.setRate(speed)
@@ -829,7 +829,7 @@ private struct AetherPlaybackView: View {
         guard current.isLive, !retuneInFlight else { return }
         let tooSoon = lastRetuneAt.map { Date().timeIntervalSince($0) < Self.retuneSpacing } ?? false
         guard retuneCount < Self.retuneBudget, !tooSoon else {
-            loadError = "This channel keeps failing. Try it again later."
+            loadError = String(localized: "This channel keeps failing. Try it again later.")
             return
         }
         retuneInFlight = true
@@ -932,7 +932,7 @@ private struct AetherPlaybackView: View {
 
     private func seek(by seconds: Double) {
         guard engine.canSeek else {
-            showToast(engine.isLive ? "Turn on timeshift in Settings → Live TV to rewind" : "This stream can't seek")
+            showToast(engine.isLive ? String(localized: "Turn on timeshift in Settings → Live TV to rewind") : String(localized: "This stream can't seek"))
             return
         }
         let target = max(0, clock.currentTime + seconds)
@@ -1003,17 +1003,17 @@ private struct AetherPlaybackView: View {
     private func toggleAspect() {
         fillScreen.toggle()
         engine.videoGravity = fillScreen ? .resizeAspectFill : .resizeAspect
-        showToast(fillScreen ? "Fill screen" : "Fit to screen")
+        showToast(fillScreen ? String(localized: "Fill screen") : String(localized: "Fit to screen"))
     }
 
     private func toggleFavourite() {
         guard let id = current.live?.channel.id else { return }
         if settings.prefs.favouriteChannelIDs.contains(id) {
             settings.prefs.favouriteChannelIDs.remove(id)
-            showToast("Removed from Favourites")
+            showToast(String(localized: "Removed from Favourites"))
         } else {
             settings.prefs.favouriteChannelIDs.insert(id)
-            showToast("Added to Favourites")
+            showToast(String(localized: "Added to Favourites"))
         }
     }
 
@@ -1032,9 +1032,9 @@ private struct AetherPlaybackView: View {
     static func trackTitle(_ track: TrackInfo) -> String {
         if !track.name.isEmpty { return track.name }
         if let language = track.language, !language.isEmpty {
-            return Locale.current.localizedString(forLanguageCode: language) ?? language.uppercased()
+            return LanguageOptions.displayLocale.localizedString(forLanguageCode: language) ?? language.uppercased()
         }
-        return "Track \(track.id)"
+        return String(localized: "Track \(String(describing: track.id))")
     }
 
     static func audioDescription(_ track: TrackInfo) -> String {
@@ -1055,8 +1055,8 @@ private struct AetherPlaybackView: View {
         switch track.channels {
         case 8: return "\(codec) 7.1"
         case 6: return "\(codec) 5.1"
-        case 2: return "\(codec) Stereo"
-        case 1: return "\(codec) Mono"
+        case 2: return String(localized: "\(codec) Stereo")
+        case 1: return String(localized: "\(codec) Mono")
         default: return codec
         }
     }
@@ -1068,12 +1068,12 @@ private struct AetherPlaybackView: View {
         case .hdr10Plus: return "HDR10+"
         case .dolbyVision: return "Dolby Vision"
         case .hlg: return "HLG"
-        @unknown default: return "Video"
+        @unknown default: return String(localized: "Video")
         }
     }
 
     static func speedLabel(_ speed: Float) -> String {
-        speed == 1 ? "Normal" : "\(speed.formatted())×"
+        speed == 1 ? String(localized: "Normal") : "\(speed.formatted())×"
     }
 
     static func time(_ date: Date) -> String {
@@ -1108,7 +1108,7 @@ extension AetherPlaybackView {
                 Button {
                     chooseStart(position)
                 } label: {
-                    ResumeButtonLabel(title: "Resume from \(Self.duration(position))")
+                    ResumeButtonLabel(title: String(localized: "Resume from \(Self.duration(position))"))
                 }
                 .buttonStyle(BareButtonStyle())
                 .focused($resumeFocused, equals: .resume)
@@ -1116,7 +1116,7 @@ extension AetherPlaybackView {
                 Button {
                     chooseStart(nil)
                 } label: {
-                    ResumeButtonLabel(title: "Start from the beginning")
+                    ResumeButtonLabel(title: String(localized: "Start from the beginning"))
                 }
                 .buttonStyle(BareButtonStyle())
                 .focused($resumeFocused, equals: .restart)
@@ -1166,7 +1166,7 @@ extension AetherPlaybackView {
                 StatsSection("Video") {
                     StatsRow("Source", sourceLine)
                     if let fps = frameRateLabel {
-                        StatsRow("Frame rate", engine.sourceVideoScan.isInterlaced ? "\(fps) · interlaced" : fps)
+                        StatsRow("Frame rate", engine.sourceVideoScan.isInterlaced ? String(localized: "\(fps) · interlaced") : fps)
                     }
                     StatsRow("Picture", Self.formatLabel(engine.videoFormat))
                     if engine.sourceVideoBitrate > 0 {
@@ -1226,22 +1226,22 @@ extension AetherPlaybackView {
     }
 
     private var upscaleOffReason: String {
-        guard upscaleRequested else { return "Turned off in Settings → Player" }
+        guard upscaleRequested else { return String(localized: "Turned off in Settings → Player") }
         if let reason = upscaleLog.skipReason { return reason }
-        if upscaleLog.lastLine?.contains("taken:") == true { return "Starting…" }
-        return engine.hasFirstFrameReadyForDisplay ? "The player didn't use the upscaler for this video" : "Starting…"
+        if upscaleLog.lastLine?.contains("taken:") == true { return String(localized: "Starting…") }
+        return engine.hasFirstFrameReadyForDisplay ? String(localized: "The player didn't use the upscaler for this video") : String(localized: "Starting…")
     }
 
     private func upscaleStatus(_ upscale: UpscaleStatus) -> String {
-        if let reason = upscale.disabledReason { return "Stopped: \(reason)" }
-        if upscale.degraded { return "Reduced to keep up (MetalFX off)" }
-        if upscaleLog.fellBackFromLineArt { return "Running (line art was too slow here)" }
-        return "Running at full quality"
+        if let reason = upscale.disabledReason { return String(localized: "Stopped: \(String(describing: reason))") }
+        if upscale.degraded { return String(localized: "Reduced to keep up (MetalFX off)") }
+        if upscaleLog.fellBackFromLineArt { return String(localized: "Running (line art was too slow here)") }
+        return String(localized: "Running at full quality")
     }
 
     private var sourceLine: String {
         let w = Int(engine.sourceVideoWidth), h = Int(engine.sourceVideoHeight)
-        let size = w > 0 && h > 0 ? "\(w) × \(h)" : "Unknown size"
+        let size = w > 0 && h > 0 ? "\(w) × \(h)" : String(localized: "Unknown size")
         guard let codec = engine.sourceVideoCodecName else { return size }
         return "\(size) · \(Self.codecLabel(codec))"
     }
@@ -1249,7 +1249,7 @@ extension AetherPlaybackView {
     private var audioTrackLine: String {
         let tracks = engine.audioTracks
         guard let track = tracks.first(where: { $0.id == engine.activeAudioTrackIndex }) ?? tracks.first else {
-            return "None"
+            return String(localized: "None")
         }
         let name = Self.trackTitle(track)
         let description = Self.audioDescription(track)
@@ -1265,15 +1265,15 @@ extension AetherPlaybackView {
         case .lineArt:
             let doubled = upscale.sourceSize.width * 2 == upscale.targetSize.width
                 && upscale.sourceSize.height * 2 == upscale.targetSize.height
-            return doubled ? "Line art ×2 (Anime4K)" : "Line art ×2 (Anime4K) + resize"
+            return doubled ? String(localized: "Line art ×2 (Anime4K)") : String(localized: "Line art ×2 (Anime4K) + resize")
         case .automatic:
             guard !upscale.degraded, let ml = upscale.mlScale else {
-                return upscale.mlScale.map { "Super resolution ×\(Self.factor($0))" } ?? "MetalFX"
+                return upscale.mlScale.map { String(localized: "Super resolution ×\(Self.factor($0))") } ?? "MetalFX"
             }
             let fills = (upscale.sourceSize.width * CGFloat(ml)).rounded(.down) >= upscale.targetSize.width - 1
-            return fills ? "Super resolution ×\(Self.factor(ml))" : "Super resolution ×\(Self.factor(ml)) + MetalFX"
+            return fills ? String(localized: "Super resolution ×\(Self.factor(ml))") : String(localized: "Super resolution ×\(Self.factor(ml)) + MetalFX")
         @unknown default:
-            return "Upscaler"
+            return String(localized: "Upscaler")
         }
     }
 
@@ -1296,12 +1296,12 @@ extension AetherPlaybackView {
     static func deliveryLabel(_ delivery: AudioDelivery) -> String {
         switch delivery {
         case .none: return "—"
-        case .noAudioInSource: return "No sound in this video"
-        case .streamCopy: return "Passed through unchanged"
-        case .bridged: return "Converted for Apple TV"
-        case .decoded: return "Decoded on Apple TV"
-        case .droppedNoPipeline: return "Sound format not supported"
-        case .playerManaged: return "Apple's player"
+        case .noAudioInSource: return String(localized: "No sound in this video")
+        case .streamCopy: return String(localized: "Passed through unchanged")
+        case .bridged: return String(localized: "Converted for Apple TV")
+        case .decoded: return String(localized: "Decoded on Apple TV")
+        case .droppedNoPipeline: return String(localized: "Sound format not supported")
+        case .playerManaged: return String(localized: "Apple's player")
         @unknown default: return "—"
         }
     }
@@ -1309,10 +1309,10 @@ extension AetherPlaybackView {
     static func routeLabel(_ route: VideoRoute, live: Bool) -> String {
         switch route {
         case .none: return "—"
-        case .remoteBypass: return "Apple's player (direct)"
-        case .loopback: return "Apple's player via the engine"
-        case .software: return live ? "Engine live pipeline" : "Engine software pipeline"
-        case .audio: return "Audio only"
+        case .remoteBypass: return String(localized: "Apple's player (direct)")
+        case .loopback: return String(localized: "Apple's player via the engine")
+        case .software: return live ? String(localized: "Engine live pipeline") : String(localized: "Engine software pipeline")
+        case .audio: return String(localized: "Audio only")
         @unknown default: return "—"
         }
     }
@@ -1323,8 +1323,8 @@ private struct StatsSection<Content: View>: View {
     let highlighted: Bool
     @ViewBuilder let content: Content
 
-    init(_ title: String, highlighted: Bool = false, @ViewBuilder content: () -> Content) {
-        self.title = title
+    init(_ title: LocalizedStringResource, highlighted: Bool = false, @ViewBuilder content: () -> Content) {
+        self.title = String(localized: title)
         self.highlighted = highlighted
         self.content = content()
     }
@@ -1355,8 +1355,8 @@ private struct StatsRow: View {
     let label: String
     let value: String
 
-    init(_ label: String, _ value: String) {
-        self.label = label
+    init(_ label: LocalizedStringResource, _ value: String) {
+        self.label = String(localized: label)
         self.value = value
     }
 

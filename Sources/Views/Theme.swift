@@ -169,6 +169,11 @@ struct GlassPanel<Content: View>: View {
     let title: String?
     let content: Content
 
+    init(_ title: LocalizedStringResource, @ViewBuilder content: () -> Content) {
+        self.init(String(localized: title), content: content)
+    }
+
+    @_disfavoredOverload
     init(_ title: String? = nil, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
@@ -342,7 +347,7 @@ struct NameSheet: View {
     @State private var text: String
     @Environment(\.dismiss) private var dismiss
 
-    init(title: String, initial: String = "", placeholder: String = "Name", secure: Bool = false,
+    init(title: String, initial: String = "", placeholder: String = String(localized: "Name"), secure: Bool = false,
          allowsEmpty: Bool = false, autocapitalize: Bool = true, onSave: @escaping (String) -> Void) {
         self.title = title
         self.placeholder = placeholder

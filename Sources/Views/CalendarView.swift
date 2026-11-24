@@ -46,22 +46,22 @@ struct CalendarView: View {
                     .padding(.top, 20)
 
                     if settings.tmdbToken.isEmpty {
-                        message("Add your TMDB token in Settings → Connections to see release dates.")
+                        message(String(localized: "Add your TMDB token in Settings → Connections to see release dates."))
                     } else if series.isEmpty {
-                        message("Add series to My List (the ＋ My List button on a series) to see when their new episodes come out.")
+                        message(String(localized: "Add series to My List (the ＋ My List button on a series) to see when their new episodes come out."))
                     } else if loading && entries.isEmpty {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                             .padding(.top, 60)
                     } else if entries.isEmpty {
-                        message("No new episodes coming up for the series in My List.")
+                        message(String(localized: "No new episodes coming up for the series in My List."))
                     }
 
                     if !today.isEmpty {
-                        row("Today", entries: today, showsDate: false)
+                        row(String(localized: "Today"), entries: today, showsDate: false)
                     }
                     if !upcoming.isEmpty {
-                        row("Coming up", entries: upcoming, showsDate: true)
+                        row(String(localized: "Coming up"), entries: upcoming, showsDate: true)
                     }
                 }
                 .padding(.bottom, 60)

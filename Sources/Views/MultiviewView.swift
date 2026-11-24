@@ -118,14 +118,14 @@ struct MultiviewView: View {
             Button {
                 picking = true
             } label: {
-                PillLabel(title: "Add channel", icon: "plus")
+                PillLabel(title: String(localized: "Add channel"), icon: "plus")
             }
             .buttonStyle(PlainPressStyle())
             .disabled(store.channels.count >= MultiviewStore.maxChannels)
             Button {
                 if let id = audibleID ?? store.channels.last?.id { remove(id) }
             } label: {
-                PillLabel(title: "Remove", icon: "rectangle.badge.minus")
+                PillLabel(title: String(localized: "Remove"), icon: "rectangle.badge.minus")
             }
             .buttonStyle(PlainPressStyle())
         }

@@ -24,8 +24,8 @@ struct PINEntryView: View {
 
     private var heading: String {
         switch mode {
-        case .verify: return "Enter PIN"
-        case .create: return firstEntry == nil ? "Choose a 4-digit PIN" : "Enter it again"
+        case .verify: return String(localized: "Enter PIN")
+        case .create: return firstEntry == nil ? String(localized: "Choose a 4-digit PIN") : String(localized: "Enter it again")
         }
     }
 
@@ -115,7 +115,7 @@ struct PINEntryView: View {
                 dismiss()
                 onSuccess()
             } else {
-                wrong("Wrong PIN")
+                wrong(String(localized: "Wrong PIN"))
             }
         case .create:
             if let first = firstEntry {
@@ -126,7 +126,7 @@ struct PINEntryView: View {
                     onSuccess()
                 } else {
                     firstEntry = nil
-                    wrong("The PINs didn't match. Start again.")
+                    wrong(String(localized: "The PINs didn't match. Start again."))
                 }
             } else {
                 firstEntry = digits
@@ -238,8 +238,8 @@ struct ParentalControlsView: View {
                     creatingPIN = true
                 }
             } label: {
-                ListRowLabel(title: "Parental PIN", subtitle: "Asks for the PIN to open locked items", icon: "key",
-                             trailing: settings.prefs.parentalControlsOn ? "On" : "Off",
+                ListRowLabel(title: String(localized: "Parental PIN"), subtitle: String(localized: "Asks for the PIN to open locked items"), icon: "key",
+                             trailing: settings.prefs.parentalControlsOn ? String(localized: "On") : String(localized: "Off"),
                              trailingIcon: settings.prefs.parentalControlsOn ? "checkmark.circle.fill" : "circle")
             }
             .buttonStyle(PlainPressStyle())
@@ -261,7 +261,7 @@ struct ParentalControlsView: View {
     private var groupsPanel: some View {
         GlassPanel("Locked Live TV groups") {
             if categories.isEmpty {
-                ListRowLabel(title: settings.xtream.isConfigured ? "Loading groups…" : "Add your IPTV login first",
+                ListRowLabel(title: settings.xtream.isConfigured ? String(localized: "Loading groups…") : String(localized: "Add your IPTV login first"),
                              icon: "folder", dimmed: true)
             }
             ForEach(categories, id: \.id) { category in
@@ -274,7 +274,7 @@ struct ParentalControlsView: View {
                     }
                 } label: {
                     ListRowLabel(title: category.name, icon: isLocked ? "lock.fill" : "folder",
-                                 trailing: isLocked ? "Locked" : nil,
+                                 trailing: isLocked ? String(localized: "Locked") : nil,
                                  trailingIcon: isLocked ? "checkmark.circle.fill" : "circle")
                 }
                 .buttonStyle(PlainPressStyle())
@@ -285,7 +285,7 @@ struct ParentalControlsView: View {
     private var addonsPanel: some View {
         GlassPanel("Addons") {
             if settings.addons.isEmpty {
-                ListRowLabel(title: "No addons", icon: "puzzlepiece", dimmed: true)
+                ListRowLabel(title: String(localized: "No addons"), icon: "puzzlepiece", dimmed: true)
             }
             ForEach(settings.addons) { addon in
                 let isLocked = settings.prefs.lockedAddonIDs.contains(addon.id)
@@ -296,9 +296,9 @@ struct ParentalControlsView: View {
                         settings.prefs.lockedAddonIDs.insert(addon.id)
                     }
                 } label: {
-                    ListRowLabel(title: "Lock \(addon.name)", subtitle: "Its streams need the PIN",
+                    ListRowLabel(title: String(localized: "Lock \(addon.name)"), subtitle: String(localized: "Its streams need the PIN"),
                                  icon: isLocked ? "lock.fill" : "puzzlepiece",
-                                 trailing: isLocked ? "Locked" : nil,
+                                 trailing: isLocked ? String(localized: "Locked") : nil,
                                  trailingIcon: isLocked ? "checkmark.circle.fill" : "circle")
                 }
                 .buttonStyle(PlainPressStyle())

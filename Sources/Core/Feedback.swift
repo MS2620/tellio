@@ -9,9 +9,9 @@ enum FeedbackService {
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .problem: "Problem"
-            case .idea: "Idea"
-            case .other: "Something else"
+            case .problem: String(localized: "Problem")
+            case .idea: String(localized: "Idea")
+            case .other: String(localized: "Something else")
             }
         }
     }
@@ -51,7 +51,7 @@ enum FeedbackService {
 
     static func send(kind: Kind, message: String, contact: String, includeDevice: Bool) async throws -> Sent {
         guard let base = baseURL else {
-            throw Failure(message: "Feedback isn't available in this build.")
+            throw Failure(message: String(localized: "Feedback isn't available in this build."))
         }
         var body: [String: String] = ["kind": kind.rawValue, "message": message,
                                       "build": String(UpdateChecker.currentBuild)]
@@ -69,12 +69,12 @@ enum FeedbackService {
         do {
             (data, response) = try await URLSession.shared.data(for: request)
         } catch {
-            throw Failure(message: "Couldn't reach the feedback service. Check your connection and try again.")
+            throw Failure(message: String(localized: "Couldn't reach the feedback service. Check your connection and try again."))
         }
         let reply = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
         guard let http = response as? HTTPURLResponse, http.statusCode == 201,
               let number = reply?["number"] as? Int else {
-            throw Failure(message: reply?["error"] as? String ?? "Couldn't send it right now. Please try again later.")
+            throw Failure(message: reply?["error"] as? String ?? String(localized: "Couldn't send it right now. Please try again later."))
         }
         return Sent(number: number)
     }

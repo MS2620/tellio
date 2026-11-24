@@ -160,53 +160,53 @@ enum ConnectionCheck {
 
     static func iptv(_ account: XtreamAccount, userAgent: String) async -> (ConnectionState, XtreamAccountInfo?) {
         guard account.isConfigured else {
-            return (.off("IPTV · Not set up"), nil)
+            return (.off(String(localized: "IPTV · Not set up")), nil)
         }
         do {
             let info = try await XtreamClient(account: account, userAgent: userAgent).accountInfo()
-            guard info.signedIn else { return (.problem("IPTV · Login failed"), info) }
-            var parts = ["IPTV", info.isActive ? "Online" : info.status]
+            guard info.signedIn else { return (.problem(String(localized: "IPTV · Login failed")), info) }
+            var parts = ["IPTV", info.isActive ? String(localized: "Online") : info.status]
             if let connections = info.connectionsText { parts.append(connections) }
             if let expires = info.expires {
-                parts.append("expires " + expires.formatted(date: .abbreviated, time: .omitted))
+                parts.append(String(localized: "expires \(expires.formatted(date: .abbreviated, time: .omitted))"))
             }
             let text = parts.joined(separator: " · ")
             return (info.isActive ? .good(text) : .problem(text), info)
         } catch {
-            return (.problem("IPTV · Can't reach the server"), nil)
+            return (.problem(String(localized: "IPTV · Can't reach the server")), nil)
         }
     }
 
     static func tmdb(_ settings: AppSettings) async -> ConnectionState {
-        guard !settings.tmdbToken.isEmpty else { return .off("Catalogue & artwork · Not set up") }
+        guard !settings.tmdbToken.isEmpty else { return .off(String(localized: "Catalogue & artwork · Not set up")) }
         do {
             return try await settings.tmdb.validate()
-                ? .good("Catalogue & artwork · Connected")
-                : .problem("Catalogue & artwork · Token not accepted")
+                ? .good(String(localized: "Catalogue & artwork · Connected"))
+                : .problem(String(localized: "Catalogue & artwork · Token not accepted"))
         } catch HTTPError.status(let code, _) where code == 401 {
-            return .problem("Catalogue & artwork · Token not accepted")
+            return .problem(String(localized: "Catalogue & artwork · Token not accepted"))
         } catch {
-            return .problem("Catalogue & artwork · Can't reach TMDB")
+            return .problem(String(localized: "Catalogue & artwork · Can't reach TMDB"))
         }
     }
 
     static func addon(_ entry: AddonEntry) async -> (ConnectionState, AddonManifest?) {
-        guard let url = URL(string: entry.manifestURL) else { return (.problem("Address isn't valid"), nil) }
+        guard let url = URL(string: entry.manifestURL) else { return (.problem(String(localized: "Address isn't valid")), nil) }
         do {
             let manifest = try await StremioAddonClient(manifestURL: url).manifest()
             let kinds = (manifest.types ?? []).map(typeName).joined(separator: ", ")
-            return (.good(kinds.isEmpty ? "Online" : "Online · " + kinds), manifest)
+            return (.good(kinds.isEmpty ? String(localized: "Online") : String(localized: "Online · \(kinds)")), manifest)
         } catch {
-            return (.problem("Can't reach the addon"), nil)
+            return (.problem(String(localized: "Can't reach the addon")), nil)
         }
     }
 
     static func typeName(_ type: String) -> String {
         switch type {
-        case "movie": return "Movies"
-        case "series": return "Series"
-        case "tv": return "TV"
-        case "channel": return "Channels"
+        case "movie": return String(localized: "Movies")
+        case "series": return String(localized: "Series")
+        case "tv": return String(localized: "TV")
+        case "channel": return String(localized: "Channels")
         default: return type.capitalized
         }
     }
@@ -218,14 +218,14 @@ struct ConnectionsView: View {
     @EnvironmentObject var settings: AppSettings
     /// Status of each IPTV account, by id.
     @State private var iptvStates: [String: ConnectionState] = [:]
-    @State private var tmdb: ConnectionState = .checking("Catalogue & artwork · Checking…")
+    @State private var tmdb: ConnectionState = .checking(String(localized: "Catalogue & artwork · Checking…"))
     @State private var addonStates: [String: ConnectionState] = [:]
     @State private var versions: [String: String] = [:]
     @State private var confirmingDelete = false
     @ObservedObject private var trakt = TraktSync.shared
 
     private var languageName: String {
-        LanguageOptions.tmdb.first { $0.code == settings.prefs.tmdbLanguage }?.name ?? settings.prefs.tmdbLanguage
+        LanguageOptions.catalogue.first { $0.0 == settings.prefs.catalogueLanguage }?.1 ?? settings.prefs.catalogueLanguage
     }
 
     /// Re-checks whenever a login or the addon list changes.
@@ -242,17 +242,17 @@ struct ConnectionsView: View {
                     } label: {
                         ConnectionRowLabel(title: account.displayName,
                                            icon: "antenna.radiowaves.left.and.right",
-                                           state: iptvStates[account.id] ?? .checking("IPTV · Checking…"),
+                                           state: iptvStates[account.id] ?? .checking(String(localized: "IPTV · Checking…")),
                                            trailing: account.host,
                                            badge: settings.xtreamAccounts.count > 1 && account.id == settings.xtream.id
-                                               ? "IN USE" : nil)
+                                               ? String(localized: "IN USE") : nil)
                     }
                     .buttonStyle(PlainPressStyle())
                 }
                 NavigationLink {
                     IPTVAccountView(accountID: nil)
                 } label: {
-                    ConnectionRowLabel(title: settings.xtreamAccounts.isEmpty ? "Add IPTV account" : "Add another IPTV account",
+                    ConnectionRowLabel(title: settings.xtreamAccounts.isEmpty ? String(localized: "Add IPTV account") : String(localized: "Add another IPTV account"),
                                        icon: "plus")
                 }
                 .buttonStyle(PlainPressStyle())
@@ -266,7 +266,7 @@ struct ConnectionsView: View {
                     TMDBAccountView()
                 } label: {
                     ConnectionRowLabel(title: "TMDB", icon: "film", state: tmdb,
-                                       trailing: settings.tmdbToken.isEmpty ? "Set up" : languageName)
+                                       trailing: settings.tmdbToken.isEmpty ? String(localized: "Set up") : languageName)
                 }
                 .buttonStyle(PlainPressStyle())
 
@@ -275,9 +275,9 @@ struct ConnectionsView: View {
                 } label: {
                     ConnectionRowLabel(title: "Trakt", icon: "checkmark.seal",
                                        state: trakt.isSignedIn
-                                           ? .good("Sync · " + (trakt.username ?? "signed in"))
-                                           : .off("Sync · Not connected"),
-                                       trailing: trakt.isSignedIn ? nil : "Set up")
+                                           ? .good(String(localized: "Sync · \(trakt.username ?? String(localized: "signed in"))"))
+                                           : .off(String(localized: "Sync · Not connected")),
+                                       trailing: trakt.isSignedIn ? nil : String(localized: "Set up"))
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -288,7 +288,7 @@ struct ConnectionsView: View {
                         AddonDetailView(addonID: addon.id)
                     } label: {
                         ConnectionRowLabel(title: addon.name, icon: "puzzlepiece.extension",
-                                           state: addonStates[addon.id] ?? .checking("Checking…"),
+                                           state: addonStates[addon.id] ?? .checking(String(localized: "Checking…")),
                                            trailing: versions[addon.id].map { "v" + $0 })
                     }
                     .buttonStyle(PlainPressStyle())
@@ -296,7 +296,7 @@ struct ConnectionsView: View {
                 NavigationLink {
                     AddAddonView()
                 } label: {
-                    ConnectionRowLabel(title: "Add addon", icon: "plus")
+                    ConnectionRowLabel(title: String(localized: "Add addon"), icon: "plus")
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -306,7 +306,7 @@ struct ConnectionsView: View {
                 Button {
                     confirmingDelete = true
                 } label: {
-                    ListRowLabel(title: "Delete all logins and addons", icon: "trash", destructive: true)
+                    ListRowLabel(title: String(localized: "Delete all logins and addons"), icon: "trash", destructive: true)
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -362,7 +362,7 @@ struct IPTVAccountView: View {
         var id: String { rawValue }
     }
 
-    @State private var state: ConnectionState = .checking("Checking…")
+    @State private var state: ConnectionState = .checking(String(localized: "Checking…"))
     @State private var info: XtreamAccountInfo?
     @State private var channelCount: Int?
     @State private var groupCount: Int?
@@ -396,11 +396,11 @@ struct IPTVAccountView: View {
 
     private var refreshText: String {
         switch settings.prefs.epgRefreshHours {
-        case ..<0: return "Refreshed when you ask"
-        case 0: return "Refreshed every launch"
-        case 1: return "Refreshed every hour"
-        case 24: return "Refreshed once a day"
-        case let hours: return "Refreshed every \(hours) hours"
+        case ..<0: return String(localized: "Refreshed when you ask")
+        case 0: return String(localized: "Refreshed every launch")
+        case 1: return String(localized: "Refreshed every hour")
+        case 24: return String(localized: "Refreshed once a day")
+        case let hours: return String(localized: "Refreshed every \(hours) hours")
         }
     }
 
@@ -418,7 +418,7 @@ struct IPTVAccountView: View {
                             Button {
                                 settings.switchAccount(to: account.id)
                             } label: {
-                                ListRowLabel(title: "Use for Live TV", icon: "checkmark")
+                                ListRowLabel(title: String(localized: "Use for Live TV"), icon: "checkmark")
                             }
                             .buttonStyle(PlainPressStyle())
                         }
@@ -428,14 +428,14 @@ struct IPTVAccountView: View {
                     HStack(alignment: .top, spacing: 40) {
                         VStack(spacing: 18) {
                             GlassPanel("Login") {
-                                fieldRow(.name, title: "Name", icon: "textformat",
-                                         value: account.name.isEmpty ? "Optional" : account.name)
-                                fieldRow(.server, title: "Server", icon: "globe",
-                                         value: account.server.isEmpty ? "Not set" : account.host)
-                                fieldRow(.username, title: "Username", icon: "person",
-                                         value: account.username.isEmpty ? "Not set" : account.username)
-                                fieldRow(.password, title: "Password", icon: "lock",
-                                         value: account.password.isEmpty ? "Not set" : "••••••••")
+                                fieldRow(.name, title: String(localized: "Name"), icon: "textformat",
+                                         value: account.name.isEmpty ? String(localized: "Optional") : account.name)
+                                fieldRow(.server, title: String(localized: "Server"), icon: "globe",
+                                         value: account.server.isEmpty ? String(localized: "Not set") : account.host)
+                                fieldRow(.username, title: String(localized: "Username"), icon: "person",
+                                         value: account.username.isEmpty ? String(localized: "Not set") : account.username)
+                                fieldRow(.password, title: String(localized: "Password"), icon: "lock",
+                                         value: account.password.isEmpty ? String(localized: "Not set") : "••••••••")
                             }
                             SettingsNote("Select a field to type in it. The name is only for you; without one the server is shown.")
                                 .padding(.top, 14)
@@ -444,20 +444,20 @@ struct IPTVAccountView: View {
                         VStack(spacing: 34) {
                             GlassPanel("Status") {
                                 if let info, info.signedIn {
-                                    InfoLine(title: "Account", value: info.status.capitalized,
+                                    InfoLine(title: String(localized: "Account"), value: info.status.capitalized,
                                              dot: info.isActive ? Theme.good : Theme.warning)
                                     if let connections = info.connectionsText {
-                                        InfoLine(title: "Connections", value: connections)
+                                        InfoLine(title: String(localized: "Connections"), value: connections)
                                     }
                                     if let expires = info.expires {
-                                        InfoLine(title: "Expires", value: expires.formatted(date: .abbreviated, time: .omitted))
+                                        InfoLine(title: String(localized: "Expires"), value: expires.formatted(date: .abbreviated, time: .omitted))
                                     }
                                     if let channelCount, let groupCount {
-                                        InfoLine(title: "Live TV", value: "\(channelCount) channels · \(groupCount) groups")
+                                        InfoLine(title: String(localized: "Live TV"), value: String(localized: "\(channelCount) channels · \(groupCount) groups"))
                                     }
-                                    InfoLine(title: "TV guide", value: refreshText)
+                                    InfoLine(title: String(localized: "TV guide"), value: refreshText)
                                 } else {
-                                    InfoLine(title: "Account", value: state.text, dot: state.dot)
+                                    InfoLine(title: String(localized: "Account"), value: state.text, dot: state.dot)
                                 }
                             }
 
@@ -465,7 +465,7 @@ struct IPTVAccountView: View {
                                 Button {
                                     Task { await check(announce: true) }
                                 } label: {
-                                    ListRowLabel(title: "Test connection", icon: "arrow.clockwise", trailing: testNote)
+                                    ListRowLabel(title: String(localized: "Test connection"), icon: "arrow.clockwise", trailing: testNote)
                                 }
                                 .buttonStyle(PlainPressStyle())
                                 .disabled(!account.isConfigured)
@@ -473,7 +473,7 @@ struct IPTVAccountView: View {
                                 Button {
                                     confirmingRemove = true
                                 } label: {
-                                    ListRowLabel(title: "Remove account", icon: "trash", destructive: true)
+                                    ListRowLabel(title: String(localized: "Remove account"), icon: "trash", destructive: true)
                                 }
                                 .buttonStyle(PlainPressStyle())
                                 .disabled(!account.isConfigured)
@@ -532,13 +532,13 @@ struct IPTVAccountView: View {
     }
 
     private func check(announce: Bool) async {
-        if announce { testNote = "Checking…" }
-        state = .checking("Checking…")
+        if announce { testNote = String(localized: "Checking…") }
+        state = .checking(String(localized: "Checking…"))
         let (newState, newInfo) = await ConnectionCheck.iptv(account, userAgent: settings.prefs.iptvUserAgent)
         state = newState
         info = newInfo
         if announce {
-            if case .good = newState { testNote = "Working" } else { testNote = "Not working" }
+            if case .good = newState { testNote = String(localized: "Working") } else { testNote = String(localized: "Not working") }
         }
         guard newInfo?.signedIn == true else {
             channelCount = nil
@@ -555,12 +555,12 @@ struct IPTVAccountView: View {
 
 struct TMDBAccountView: View {
     @EnvironmentObject var settings: AppSettings
-    @State private var state: ConnectionState = .checking("Checking…")
+    @State private var state: ConnectionState = .checking(String(localized: "Checking…"))
     @State private var confirmingRemove = false
 
     private var maskedToken: String {
         let token = settings.ownTmdbToken
-        guard !token.isEmpty else { return settings.usingBuiltInTMDB ? "Built in" : "Not set" }
+        guard !token.isEmpty else { return settings.usingBuiltInTMDB ? String(localized: "Built in") : String(localized: "Not set") }
         return "••••" + String(token.suffix(4))
     }
 
@@ -572,7 +572,7 @@ struct TMDBAccountView: View {
                     ConnectionHeader(title: "TMDB", icon: "film", state: state)
 
                     GlassPanel("Login") {
-                        TypingRow(title: "API Read Access Token", icon: "key", value: maskedToken,
+                        TypingRow(title: String(localized: "API Read Access Token"), icon: "key", value: maskedToken,
                                   initial: settings.ownTmdbToken, secure: true) { value in
                             settings.tmdbToken = value.trimmingCharacters(in: .whitespacesAndNewlines)
                         }
@@ -582,8 +582,8 @@ struct TMDBAccountView: View {
                         : "Free from themoviedb.org → Settings → API. Use the long \"API Read Access Token\", not the short API key.")
 
                     GlassPanel("Catalogue") {
-                        SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.tmdbLanguage,
-                                          options: LanguageOptions.tmdb.map { ($0.code, $0.name) })
+                        SettingsOptionRow("Language", icon: "globe", selection: $settings.prefs.catalogueLanguage,
+                                          options: LanguageOptions.catalogue)
                         SettingsOptionRow("Region", icon: "mappin.and.ellipse", selection: $settings.prefs.tmdbRegion,
                                           options: LanguageOptions.regions.map { ($0.code, $0.name) })
                     }
@@ -592,7 +592,7 @@ struct TMDBAccountView: View {
                         Button {
                             Task { await check() }
                         } label: {
-                            ListRowLabel(title: "Test connection", icon: "arrow.clockwise")
+                            ListRowLabel(title: String(localized: "Test connection"), icon: "arrow.clockwise")
                         }
                         .buttonStyle(PlainPressStyle())
                         .disabled(settings.tmdbToken.isEmpty)
@@ -600,7 +600,7 @@ struct TMDBAccountView: View {
                         Button {
                             confirmingRemove = true
                         } label: {
-                            ListRowLabel(title: AppSettings.builtInTMDBToken.isEmpty ? "Remove token" : "Remove your token",
+                            ListRowLabel(title: AppSettings.builtInTMDBToken.isEmpty ? String(localized: "Remove token") : String(localized: "Remove your token"),
                                          icon: "trash", destructive: true)
                         }
                         .buttonStyle(PlainPressStyle())
@@ -624,7 +624,7 @@ struct TMDBAccountView: View {
     }
 
     private func check() async {
-        state = .checking("Checking…")
+        state = .checking(String(localized: "Checking…"))
         state = await ConnectionCheck.tmdb(settings)
     }
 }
@@ -635,7 +635,7 @@ struct AddonDetailView: View {
     let addonID: String
     @EnvironmentObject var settings: AppSettings
     @Environment(\.dismiss) private var dismiss
-    @State private var state: ConnectionState = .checking("Checking…")
+    @State private var state: ConnectionState = .checking(String(localized: "Checking…"))
     @State private var manifest: AddonManifest?
     @State private var confirmingRemove = false
     @State private var renaming = false
@@ -658,13 +658,13 @@ struct AddonDetailView: View {
             AppBackground()
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
-                    ConnectionHeader(title: addon?.name ?? "Addon", icon: "puzzlepiece.extension", state: state)
+                    ConnectionHeader(title: addon?.name ?? String(localized: "Addon"), icon: "puzzlepiece.extension", state: state)
 
                     GlassPanel("About") {
-                        InfoLine(title: "Version", value: manifest?.version ?? "—")
-                        InfoLine(title: "Provides",
+                        InfoLine(title: String(localized: "Version"), value: manifest?.version ?? "—")
+                        InfoLine(title: String(localized: "Provides"),
                                  value: (manifest?.types ?? []).map(ConnectionCheck.typeName).joined(separator: ", ").nonEmpty ?? "—")
-                        InfoLine(title: "Address", value: address)
+                        InfoLine(title: String(localized: "Address"), value: address)
                         if let description = manifest?.description, !description.isEmpty {
                             Text(description)
                                 .font(.system(size: 22, weight: .medium))
@@ -679,8 +679,8 @@ struct AddonDetailView: View {
                         Button {
                             move(by: -1)
                         } label: {
-                            ListRowLabel(title: "Move up", icon: "arrow.up",
-                                         trailing: index.map { "\($0 + 1) of \(settings.addons.count)" })
+                            ListRowLabel(title: String(localized: "Move up"), icon: "arrow.up",
+                                         trailing: index.map { String(localized: "\($0 + 1) of \(settings.addons.count)") })
                         }
                         .buttonStyle(PlainPressStyle())
                         .disabled((index ?? 0) == 0)
@@ -688,7 +688,7 @@ struct AddonDetailView: View {
                         Button {
                             move(by: 1)
                         } label: {
-                            ListRowLabel(title: "Move down", icon: "arrow.down")
+                            ListRowLabel(title: String(localized: "Move down"), icon: "arrow.down")
                         }
                         .buttonStyle(PlainPressStyle())
                         .disabled((index ?? 0) >= settings.addons.count - 1)
@@ -699,14 +699,14 @@ struct AddonDetailView: View {
                         Button {
                             renaming = true
                         } label: {
-                            ListRowLabel(title: "Rename", icon: "pencil")
+                            ListRowLabel(title: String(localized: "Rename"), icon: "pencil")
                         }
                         .buttonStyle(PlainPressStyle())
 
                         Button {
                             confirmingRemove = true
                         } label: {
-                            ListRowLabel(title: "Remove addon", icon: "trash", destructive: true)
+                            ListRowLabel(title: String(localized: "Remove addon"), icon: "trash", destructive: true)
                         }
                         .buttonStyle(PlainPressStyle())
                     }
@@ -723,7 +723,7 @@ struct AddonDetailView: View {
             manifest = result.1
         }
         .sheet(isPresented: $renaming) {
-            NameSheet(title: "Rename addon", initial: addon?.name ?? "") { value in
+            NameSheet(title: String(localized: "Rename addon"), initial: addon?.name ?? "") { value in
                 guard let index else { return }
                 settings.addons[index].name = value
             }
@@ -765,7 +765,7 @@ struct AddAddonView: View {
                 Button {
                     Task { await add() }
                 } label: {
-                    ListRowLabel(title: adding ? "Checking…" : "Add addon", icon: "plus", trailing: status)
+                    ListRowLabel(title: adding ? String(localized: "Checking…") : String(localized: "Add addon"), icon: "plus", trailing: status)
                 }
                 .buttonStyle(PlainPressStyle())
                 .disabled(adding || address.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -776,11 +776,11 @@ struct AddAddonView: View {
 
     private func add() async {
         guard let url = StremioAddonClient.normalize(address) else {
-            status = "That isn't a valid address"
+            status = String(localized: "That isn't a valid address")
             return
         }
         guard !settings.addons.contains(where: { $0.manifestURL == url.absoluteString }) else {
-            status = "Already added"
+            status = String(localized: "Already added")
             return
         }
         adding = true
@@ -790,7 +790,7 @@ struct AddAddonView: View {
             settings.addons.append(AddonEntry(manifestURL: url.absoluteString, name: manifest.name))
             dismiss()
         } catch {
-            status = "Couldn't load it"
+            status = String(localized: "Couldn't load it")
         }
     }
 }
@@ -812,9 +812,9 @@ struct TraktAccountView: View {
 
     private var state: ConnectionState {
         if let error = trakt.lastError { return .problem(error) }
-        if trakt.isSignedIn { return .good("Signed in" + (trakt.username.map { " as \($0)" } ?? "")) }
-        if code != nil { return .checking("Waiting for you to approve…") }
-        return .off(trakt.hasApp ? "Not signed in" : "Add a Trakt Client ID first")
+        if trakt.isSignedIn { return .good(trakt.username.map { String(localized: "Signed in as \($0)") } ?? String(localized: "Signed in")) }
+        if code != nil { return .checking(String(localized: "Waiting for you to approve…")) }
+        return .off(trakt.hasApp ? String(localized: "Not signed in") : String(localized: "Add a Trakt Client ID first"))
     }
 
     var body: some View {
@@ -836,7 +836,7 @@ struct TraktAccountView: View {
                             Button {
                                 Task { await startSignIn() }
                             } label: {
-                                ListRowLabel(title: "Sign in to Trakt", icon: "person.crop.circle.badge.plus")
+                                ListRowLabel(title: String(localized: "Sign in to Trakt"), icon: "person.crop.circle.badge.plus")
                             }
                             .buttonStyle(PlainPressStyle())
                             .disabled(!trakt.hasApp)
@@ -852,7 +852,7 @@ struct TraktAccountView: View {
 
                     GlassPanel {
                         SettingsLinkRow("Use your own Trakt app", icon: "gearshape",
-                                        value: trakt.usingOwnApp ? "Your own" : (trakt.hasBuiltInApp ? "Built in" : "Set up")) {
+                                        value: trakt.usingOwnApp ? String(localized: "Your own") : (trakt.hasBuiltInApp ? String(localized: "Built in") : String(localized: "Set up"))) {
                             TraktOwnAppView()
                         }
                     }
@@ -898,7 +898,7 @@ struct TraktAccountView: View {
             Button {
                 self.code = nil
             } label: {
-                PillLabel(title: "Cancel", icon: "xmark")
+                PillLabel(title: String(localized: "Cancel"), icon: "xmark")
             }
             .buttonStyle(PlainPressStyle())
         }
@@ -912,15 +912,15 @@ struct TraktAccountView: View {
             Button {
                 confirmingSignOut = true
             } label: {
-                ListRowLabel(title: "Signed in as \(trakt.username ?? "your account")", icon: "person.crop.circle",
-                             trailing: "Sign out")
+                ListRowLabel(title: String(localized: "Signed in as \(trakt.username ?? String(localized: "your account"))"), icon: "person.crop.circle",
+                             trailing: String(localized: "Sign out"))
             }
             .buttonStyle(PlainPressStyle())
             Button {
                 Task { await trakt.sync() }
             } label: {
-                ListRowLabel(title: trakt.syncing ? "Syncing…" : "Sync now", icon: "arrow.triangle.2.circlepath",
-                             trailing: trakt.lastSync.map { "Last synced " + $0.formatted(.relative(presentation: .named)) })
+                ListRowLabel(title: trakt.syncing ? String(localized: "Syncing…") : String(localized: "Sync now"), icon: "arrow.triangle.2.circlepath",
+                             trailing: trakt.lastSync.map { String(localized: "Last synced \($0.formatted(.relative(presentation: .named)))") })
             }
             .buttonStyle(PlainPressStyle())
             .disabled(trakt.syncing)
@@ -946,7 +946,7 @@ struct TraktAccountView: View {
             codeStarted = Date()
             code = fresh
         } catch {
-            signInMessage = "Couldn't start sign-in: \(error.localizedDescription). Check the client ID."
+            signInMessage = String(localized: "Couldn't start sign-in: \(error.localizedDescription). Check the client ID.")
         }
     }
 
@@ -967,11 +967,11 @@ struct TraktAccountView: View {
                 interval += 5
             case .expired:
                 self.code = nil
-                signInMessage = "The code expired. Sign in again."
+                signInMessage = String(localized: "The code expired. Sign in again.")
                 return
             case .denied:
                 self.code = nil
-                signInMessage = "Sign-in was declined on Trakt."
+                signInMessage = String(localized: "Sign-in was declined on Trakt.")
                 return
             case .failed(let message):
                 self.code = nil
@@ -981,7 +981,7 @@ struct TraktAccountView: View {
         }
         if !Task.isCancelled, self.code != nil {
             self.code = nil
-            signInMessage = "The code expired. Sign in again."
+            signInMessage = String(localized: "The code expired. Sign in again.")
         }
     }
 }
@@ -998,14 +998,14 @@ struct TraktOwnAppView: View {
                     Text("Your own Trakt app")
                         .font(.system(size: 44, weight: .heavy))
                     GlassPanel {
-                        TypingRow(title: "Client ID", icon: "key",
+                        TypingRow(title: String(localized: "Client ID"), icon: "key",
                                   value: trakt.clientID.isEmpty
-                                      ? (trakt.hasBuiltInApp ? "Built in" : "Not set")
+                                      ? (trakt.hasBuiltInApp ? String(localized: "Built in") : String(localized: "Not set"))
                                       : "••••" + String(trakt.clientID.suffix(4)),
                                   initial: trakt.clientID, allowsEmpty: true) { trakt.clientID = $0 }
                         if !trakt.clientID.isEmpty {
-                            TypingRow(title: "Client secret (older apps only)", icon: "lock",
-                                      value: trakt.clientSecret.isEmpty ? "None" : "••••••",
+                            TypingRow(title: String(localized: "Client secret (older apps only)"), icon: "lock",
+                                      value: trakt.clientSecret.isEmpty ? String(localized: "None") : "••••••",
                                       initial: trakt.clientSecret, secure: true, allowsEmpty: true) {
                                 trakt.clientSecret = $0
                             }
@@ -1015,7 +1015,7 @@ struct TraktOwnAppView: View {
                                 trakt.clientID = ""
                                 trakt.clientSecret = ""
                             } label: {
-                                ListRowLabel(title: "Go back to the built-in app", icon: "arrow.uturn.backward")
+                                ListRowLabel(title: String(localized: "Go back to the built-in app"), icon: "arrow.uturn.backward")
                             }
                             .buttonStyle(PlainPressStyle())
                         }

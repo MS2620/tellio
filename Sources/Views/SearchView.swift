@@ -91,19 +91,19 @@ struct SearchView: View {
                 Button {
                     query.append(" ")
                 } label: {
-                    PillLabel(title: "Space")
+                    PillLabel(title: String(localized: "Space"))
                 }
                 .buttonStyle(PlainPressStyle())
                 Button {
                     if !query.isEmpty { query.removeLast() }
                 } label: {
-                    PillLabel(title: "Delete", icon: "delete.left")
+                    PillLabel(title: String(localized: "Delete"), icon: "delete.left")
                 }
                 .buttonStyle(PlainPressStyle())
                 Button {
                     query = ""
                 } label: {
-                    PillLabel(title: "Clear")
+                    PillLabel(title: String(localized: "Clear"))
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -131,7 +131,7 @@ struct SearchView: View {
                             Button {
                                 settings.prefs.recentSearches = []
                             } label: {
-                                PillLabel(title: "Clear", icon: "xmark")
+                                PillLabel(title: String(localized: "Clear"), icon: "xmark")
                             }
                             .buttonStyle(PlainPressStyle())
                         }
@@ -142,14 +142,14 @@ struct SearchView: View {
                 }
             }
             if !trendingMovies.isEmpty {
-                RailView(title: "Trending Movies", items: trendingMovies, inset: 0)
+                RailView(title: String(localized: "Trending Movies"), items: trendingMovies, inset: 0)
             }
             if !trendingSeries.isEmpty {
-                RailView(title: "Trending Series", items: trendingSeries, inset: 0)
+                RailView(title: String(localized: "Trending Series"), items: trendingSeries, inset: 0)
             }
         } else if hasResults {
-            if !movies.isEmpty { RailView(title: "Movies", items: movies, inset: 0) }
-            if !series.isEmpty { RailView(title: "Series", items: series, inset: 0) }
+            if !movies.isEmpty { RailView(title: String(localized: "Movies"), items: movies, inset: 0) }
+            if !series.isEmpty { RailView(title: String(localized: "Series"), items: series, inset: 0) }
             if !channels.isEmpty { channelRow }
         } else if searching {
             ProgressView()
@@ -250,7 +250,7 @@ struct SearchView: View {
             url: url,
             title: channel.name,
             artworkURL: channel.icon.flatMap { URL(string: $0) },
-            sourceName: "Search",
+            sourceName: String(localized: "Search"),
             isLive: true,
             httpHeaders: client.requestHeaders,
             live: LiveContext(channels: channels, index: index)

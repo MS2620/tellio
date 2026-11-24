@@ -58,7 +58,7 @@ struct ReminderPromptView: View {
                         if isSet { store.remove(item.reminder) } else { store.add(item.reminder) }
                         dismiss()
                     } label: {
-                        CardButtonLabel(title: isSet ? "Cancel reminder" : "Remind me",
+                        CardButtonLabel(title: isSet ? String(localized: "Cancel reminder") : String(localized: "Remind me"),
                                         icon: isSet ? "bell.slash" : "bell")
                     }
                     .buttonStyle(PlainPressStyle())
@@ -68,7 +68,7 @@ struct ReminderPromptView: View {
                         dismiss()
                         onWatch()
                     } label: {
-                        CardButtonLabel(title: "Watch channel now", icon: "play.fill")
+                        CardButtonLabel(title: String(localized: "Watch channel now"), icon: "play.fill")
                     }
                     .buttonStyle(PlainPressStyle())
                     .focused($focused, equals: 1)
@@ -158,7 +158,7 @@ struct ReminderBanner: View {
                     store.dismissDue()
                     onWatch(due)
                 } label: {
-                    CardButtonLabel(title: "Watch now", compact: true)
+                    CardButtonLabel(title: String(localized: "Watch now"), compact: true)
                 }
                 .buttonStyle(PlainPressStyle())
                 .focused($focused, equals: 0)
@@ -166,7 +166,7 @@ struct ReminderBanner: View {
                 Button {
                     withAnimation { store.dismissDue() }
                 } label: {
-                    CardButtonLabel(title: "Dismiss", compact: true)
+                    CardButtonLabel(title: String(localized: "Dismiss"), compact: true)
                 }
                 .buttonStyle(PlainPressStyle())
                 .focused($focused, equals: 1)
@@ -191,14 +191,14 @@ struct RemindersPanel: View {
     var body: some View {
         GlassPanel("Reminders") {
             if store.reminders.isEmpty {
-                ListRowLabel(title: "No reminders", subtitle: "Select a programme that hasn't started in the guide",
+                ListRowLabel(title: String(localized: "No reminders"), subtitle: String(localized: "Select a programme that hasn't started in the guide"),
                              icon: "bell", dimmed: true)
             } else {
                 ForEach(store.reminders) { reminder in
                     Button {
                         store.remove(reminder)
                     } label: {
-                        ListRowLabel(title: reminder.title, subtitle: "\(reminder.channelName) · select to cancel",
+                        ListRowLabel(title: reminder.title, subtitle: String(localized: "\(reminder.channelName) · select to cancel"),
                                      icon: "bell.fill", trailing: reminder.whenLabel)
                     }
                     .buttonStyle(PlainPressStyle())

@@ -634,8 +634,8 @@ enum GuideError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .compressed: return "the guide file is compressed"
-        case .empty: return "the guide file has no listings"
+        case .compressed: return String(localized: "the guide file is compressed")
+        case .empty: return String(localized: "the guide file has no listings")
         }
     }
 }
@@ -747,7 +747,7 @@ enum ChannelFinder {
         do {
             all = try await XtreamCache.shared.liveStreams(client)
         } catch {
-            return ChannelSearch(details: "Couldn't load your channel list: \(error.localizedDescription)")
+            return ChannelSearch(details: String(localized: "Couldn't load your channel list: \(error.localizedDescription)"))
         }
         let streams = all.filter { channel in
             if hiddenChannels.contains(channel.id) { return false }
@@ -784,19 +784,18 @@ enum ChannelFinder {
             }
             if !best.isEmpty {
                 return ChannelSearch(matches: rank(Array(best.values), preferred: preferred), guideEnds: guideEnds,
-                                     details: "Found in the full TV guide.")
+                                     details: String(localized: "Found in the full TV guide."))
             }
-            notes.append("Full guide: \(guide.totalListings) listings, \(guide.programmes.count) about your teams, "
-                         + "\(onAir) on at that time, \(byGuideID.count) channels linked to it.")
+            notes.append(String(localized: "Full guide: \(guide.totalListings) listings, \(guide.programmes.count) about your teams, \(onAir) on at that time, \(byGuideID.count) channels linked to it."))
         } catch {
-            notes.append("Full guide unavailable (\(error.localizedDescription)).")
+            notes.append(String(localized: "Full guide unavailable (\(error.localizedDescription))."))
         }
 
         // Ask channel by channel instead.
         let (matches, searched) = await searchChannelByChannel(streams: streams, client: client, fixture: fixture,
                                                                matcher: matcher, start: start, preferred: preferred,
                                                                progress: progress)
-        notes.append("Checked \(searched) channels one by one.")
+        notes.append(String(localized: "Checked \(searched) channels one by one."))
         return ChannelSearch(matches: matches, guideEnds: guideEnds, details: notes.joined(separator: " "))
     }
 

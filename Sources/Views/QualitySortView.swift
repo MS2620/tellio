@@ -57,21 +57,20 @@ struct QualitySortSettingsView: View {
         let count = ids.reduce(0) { $0 + (summary[$1]?.count ?? 0) }
         var parts: [String] = []
         let twins = ids.compactMap { names[$0] }.filter { $0.caseInsensitiveCompare(name) != .orderedSame }
-        if ids.count > 1, !twins.isEmpty { parts.append("With " + twins.joined(separator: ", ")) }
-        parts.append(count == 0 ? "No channels" : (count == 1 ? "1 channel" : "\(count) channels"))
+        if ids.count > 1, !twins.isEmpty { parts.append(String(localized: "With \(twins.joined(separator: ", "))")) }
+        parts.append(count == 0 ? String(localized: "No channels") : String(localized: "\(count) channels"))
         let present = Set(ids.flatMap { summary[$0]?.qualities ?? [] })
         let labels = ChannelQuality.allCases.filter { present.contains($0) }.map(\.label)
         if ids.contains(where: { settings.prefs.qualitySortCategoryIDs.contains($0) }), !labels.isEmpty {
-            let list = labels.count == 1 ? labels[0]
-                : labels.dropLast().joined(separator: ", ") + " and " + labels[labels.count - 1]
-            parts.append("\(list) folder\(labels.count == 1 ? "" : "s")")
+            let list = labels.formatted(.list(type: .and))
+            parts.append(labels.count == 1 ? String(localized: "\(list) folder") : String(localized: "\(list) folders"))
         }
         return parts.joined(separator: " · ")
     }
 
     private func load() async {
         guard settings.xtream.isConfigured else {
-            error = "Add your IPTV login in Settings → Connections first."
+            error = String(localized: "Add your IPTV login in Settings → Connections first.")
             loading = false
             return
         }

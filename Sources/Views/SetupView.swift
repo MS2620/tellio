@@ -61,13 +61,13 @@ struct SetupView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 1100)
             HStack(spacing: 28) {
-                featureCard("film", "Films & series", "Browse everything; play from your addons")
-                featureCard("tv", "Live TV", "Your IPTV channels with a full guide")
-                featureCard("sportscourt", "Sports", "Your teams' games, scores and channels")
+                featureCard("film", String(localized: "Films & series"), String(localized: "Browse everything; play from your addons"))
+                featureCard("tv", String(localized: "Live TV"), String(localized: "Your IPTV channels with a full guide"))
+                featureCard("sportscourt", String(localized: "Sports"), String(localized: "Your teams' games, scores and channels"))
             }
             .padding(.top, 10)
             HStack(spacing: 24) {
-                Button { go(.live) } label: { SetupPill(title: "Get started") }
+                Button { go(.live) } label: { SetupPill(title: String(localized: "Get started")) }
                     .buttonStyle(PlainPressStyle())
                 NavigationLink {
                     BackupView()
@@ -78,7 +78,7 @@ struct SetupView: View {
                             }
                         }
                 } label: {
-                    SetupPill(title: "Restore from backup", icon: "clock.arrow.circlepath")
+                    SetupPill(title: String(localized: "Restore from backup"), icon: "clock.arrow.circlepath")
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -106,7 +106,7 @@ struct SetupView: View {
 
     private func progress(_ active: Int) -> some View {
         HStack(spacing: 12) {
-            ForEach(Array(["Live TV", "Addons", "Your teams"].enumerated()), id: \.offset) { index, name in
+            ForEach(Array([String(localized: "Live TV"), String(localized: "Addons"), String(localized: "Your teams")].enumerated()), id: \.offset) { index, name in
                 Text("\(index + 1) · \(name)")
                     .font(.system(size: 20, weight: .bold))
                     .padding(.horizontal, 20)
@@ -120,9 +120,9 @@ struct SetupView: View {
 
     private var addonsStep: some View {
         SetupStepLayout(progress: progress(1), icon: "puzzlepiece.extension",
-                        title: "Add a Stremio addon",
-                        text: "Films and series play from your addons. Use the manifest link from the addon's own configuration page.",
-                        hint: "You can add more, or change their order, later in Settings › Connections.") {
+                        title: String(localized: "Add a Stremio addon"),
+                        text: String(localized: "Films and series play from your addons. Use the manifest link from the addon's own configuration page."),
+                        hint: String(localized: "You can add more, or change their order, later in Settings › Connections.")) {
             GlassPanel {
                 ForEach(settings.addons) { addon in
                     ListRowLabel(title: addon.name, icon: "checkmark", trailing: URL(string: addon.manifestURL)?.host)
@@ -130,7 +130,7 @@ struct SetupView: View {
                 NavigationLink {
                     AddAddonView()
                 } label: {
-                    ListRowLabel(title: settings.addons.isEmpty ? "Add addon" : "Add another addon", icon: "plus")
+                    ListRowLabel(title: settings.addons.isEmpty ? String(localized: "Add addon") : String(localized: "Add another addon"), icon: "plus")
                 }
                 .buttonStyle(PlainPressStyle())
             }
@@ -141,9 +141,9 @@ struct SetupView: View {
 
     private var teamsStep: some View {
         SetupStepLayout(progress: progress(2), icon: "sportscourt",
-                        title: "Follow your teams",
-                        text: "Their games show on Home and in Sports with live scores, and Tellio finds the channels showing them.",
-                        hint: "Not into sports? Skip this.") {
+                        title: String(localized: "Follow your teams"),
+                        text: String(localized: "Their games show on Home and in Sports with live scores, and Tellio finds the channels showing them."),
+                        hint: String(localized: "Not into sports? Skip this.")) {
             GlassPanel {
                 ForEach(settings.prefs.favouriteTeams, id: \.id) { team in
                     ListRowLabel(title: team.name, icon: "star.fill")
@@ -151,7 +151,7 @@ struct SetupView: View {
                 NavigationLink {
                     TeamsManagerView()
                 } label: {
-                    ListRowLabel(title: settings.prefs.favouriteTeams.isEmpty ? "Choose teams" : "Add or remove teams",
+                    ListRowLabel(title: settings.prefs.favouriteTeams.isEmpty ? String(localized: "Choose teams") : String(localized: "Add or remove teams"),
                                  icon: "plus")
                 }
                 .buttonStyle(PlainPressStyle())
@@ -165,10 +165,10 @@ struct SetupView: View {
     private func stepButtons(next: @escaping () -> Void, canContinue: Bool) -> some View {
         HStack(spacing: 24) {
             if canContinue {
-                Button(action: next) { SetupPill(title: "Continue") }
+                Button(action: next) { SetupPill(title: String(localized: "Continue")) }
                     .buttonStyle(PlainPressStyle())
             }
-            Button(action: next) { SetupPill(title: "Skip for now") }
+            Button(action: next) { SetupPill(title: String(localized: "Skip for now")) }
                 .buttonStyle(PlainPressStyle())
         }
     }
@@ -184,24 +184,24 @@ struct SetupView: View {
             Text("You're all set")
                 .font(.system(size: 68, weight: .heavy))
             GlassPanel {
-                summaryRow("film", "Films & series", "Ready", ok: true)
-                summaryRow("tv", "Live TV",
-                           settings.xtream.isConfigured ? settings.xtream.displayName : "Not set · add in Settings",
+                summaryRow("film", String(localized: "Films & series"), String(localized: "Ready"), ok: true)
+                summaryRow("tv", String(localized: "Live TV"),
+                           settings.xtream.isConfigured ? settings.xtream.displayName : String(localized: "Not set · add in Settings"),
                            ok: settings.xtream.isConfigured)
-                summaryRow("puzzlepiece.extension", "Addons",
-                           settings.addons.isEmpty ? "None · add in Settings"
-                               : (settings.addons.count == 1 ? "1 added" : "\(settings.addons.count) added"),
+                summaryRow("puzzlepiece.extension", String(localized: "Addons"),
+                           settings.addons.isEmpty ? String(localized: "None · add in Settings")
+                               : String(localized: "\(settings.addons.count) added"),
                            ok: !settings.addons.isEmpty)
-                summaryRow("sportscourt", "Your teams",
-                           settings.prefs.favouriteTeams.isEmpty ? "Not set · add in Sports"
-                               : "\(settings.prefs.favouriteTeams.count) followed",
+                summaryRow("sportscourt", String(localized: "Your teams"),
+                           settings.prefs.favouriteTeams.isEmpty ? String(localized: "Not set · add in Sports")
+                               : String(localized: "\(settings.prefs.favouriteTeams.count) followed"),
                            ok: !settings.prefs.favouriteTeams.isEmpty)
             }
             .frame(width: 860)
             Text("Everything here can be changed later in Settings.")
                 .font(.system(size: 22))
                 .foregroundStyle(.white.opacity(0.6))
-            Button { finish() } label: { SetupPill(title: "Start watching") }
+            Button { finish() } label: { SetupPill(title: String(localized: "Start watching")) }
                 .buttonStyle(PlainPressStyle())
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -232,19 +232,19 @@ private struct SetupLiveStep<Progress: View>: View {
 
     var body: some View {
         SetupStepLayout(progress: progress(0), icon: "tv",
-                        title: "Add your IPTV account",
-                        text: "For Live TV, the guide and finding matches on your channels. Use the Xtream Codes details from your provider.",
-                        hint: "No IPTV? Skip this. Films and series still work, and you can add it later in Settings › Connections.") {
+                        title: String(localized: "Add your IPTV account"),
+                        text: String(localized: "For Live TV, the guide and finding matches on your channels. Use the Xtream Codes details from your provider."),
+                        hint: String(localized: "No IPTV? Skip this. Films and series still work, and you can add it later in Settings › Connections.")) {
             GlassPanel {
-                TypingRow(title: "Name", subtitle: "So you can tell your IPTV accounts apart", icon: "textformat",
-                          value: account.name.isEmpty ? "e.g. Home IPTV" : account.name,
+                TypingRow(title: String(localized: "Name"), subtitle: String(localized: "So you can tell your IPTV accounts apart"), icon: "textformat",
+                          value: account.name.isEmpty ? String(localized: "e.g. Home IPTV") : account.name,
                           initial: account.name, autocapitalize: true, allowsEmpty: true) { account.name = $0 }
-                TypingRow(title: "Server", icon: "globe", value: account.server.isEmpty ? "Not set" : account.host,
+                TypingRow(title: String(localized: "Server"), icon: "globe", value: account.server.isEmpty ? String(localized: "Not set") : account.host,
                           initial: account.server) { account.server = $0 }
-                TypingRow(title: "Username", icon: "person",
-                          value: account.username.isEmpty ? "Not set" : account.username,
+                TypingRow(title: String(localized: "Username"), icon: "person",
+                          value: account.username.isEmpty ? String(localized: "Not set") : account.username,
                           initial: account.username) { account.username = $0 }
-                TypingRow(title: "Password", icon: "lock", value: account.password.isEmpty ? "Not set" : "••••••••",
+                TypingRow(title: String(localized: "Password"), icon: "lock", value: account.password.isEmpty ? String(localized: "Not set") : "••••••••",
                           initial: account.password, secure: true) { account.password = $0 }
             }
             if let status {
@@ -261,11 +261,11 @@ private struct SetupLiveStep<Progress: View>: View {
                         settings.addAccount(account, use: true)
                         next()
                     } label: {
-                        SetupPill(title: "Continue")
+                        SetupPill(title: String(localized: "Continue"))
                     }
                     .buttonStyle(PlainPressStyle())
                 }
-                Button(action: next) { SetupPill(title: "Skip for now") }
+                Button(action: next) { SetupPill(title: String(localized: "Skip for now")) }
                     .buttonStyle(PlainPressStyle())
             }
         }
@@ -275,12 +275,12 @@ private struct SetupLiveStep<Progress: View>: View {
         }
         .task(id: account) {
             guard account.isConfigured else { status = nil; return }
-            status = .checking("Checking…")
+            status = .checking(String(localized: "Checking…"))
             let (state, info) = await ConnectionCheck.iptv(account, userAgent: settings.prefs.iptvUserAgent)
             guard info?.signedIn == true else { status = state; return }
             let client = XtreamClient(account: account, userAgent: settings.prefs.iptvUserAgent)
             if let count = (try? await XtreamCache.shared.liveStreams(client))?.count {
-                status = .good("Connected · \(count.formatted()) channels")
+                status = .good(String(localized: "Connected · \(count) channels"))
             } else {
                 status = state
             }

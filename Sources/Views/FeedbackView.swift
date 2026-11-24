@@ -39,13 +39,13 @@ struct FeedbackView: View {
             .focusSection()
 
             GlassPanel {
-                TypingRow(title: "Message", subtitle: "What happened, or what you'd like",
+                TypingRow(title: String(localized: "Message"), subtitle: String(localized: "What happened, or what you'd like"),
                           icon: "text.alignleft",
-                          value: message.isEmpty ? "Type your message" : message,
+                          value: message.isEmpty ? String(localized: "Type your message") : message,
                           initial: message, autocapitalize: true, allowsEmpty: true) { message = $0 }
-                TypingRow(title: "Email or GitHub name",
-                          subtitle: "Only if you'd like a reply. Kept private, never posted",
-                          icon: "at", value: contact.isEmpty ? "Optional" : contact,
+                TypingRow(title: String(localized: "Email or GitHub name"),
+                          subtitle: String(localized: "Only if you'd like a reply. Kept private, never posted"),
+                          icon: "at", value: contact.isEmpty ? String(localized: "Optional") : contact,
                           initial: contact, allowsEmpty: true) { contact = $0 }
                 SettingsToggleRow("Include device details", icon: "tv",
                                   subtitle: FeedbackService.deviceDetails, isOn: $includeDevice)
@@ -53,12 +53,12 @@ struct FeedbackView: View {
 
             HStack(spacing: 20) {
                 Button(action: send) {
-                    PillLabel(title: sending ? "Sending…" : "Send", icon: sending ? nil : "paperplane")
+                    PillLabel(title: sending ? String(localized: "Sending…") : String(localized: "Send"), icon: sending ? nil : "paperplane")
                         .opacity(canSend || sending ? 1 : 0.5)
                 }
                 .buttonStyle(PlainPressStyle())
                 .disabled(!canSend)
-                Text(error ?? "Never includes your logins, server or channel names.")
+                Text(error ?? String(localized: "Never includes your logins, server or channel names."))
                     .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(error == nil ? Color.white.opacity(0.65) : Theme.danger)
                     .fixedSize(horizontal: false, vertical: true)
