@@ -613,8 +613,11 @@ struct ESPNClient {
         }
         let underWaySince = now.addingTimeInterval(-4 * 3600)
         return events.values.compactMap { event -> Fixture? in
+            // Only the followed teams actually in this game (team ids repeat across sports).
+            let ids = Set(event.competitions?.first?.competitors?.compactMap { $0.team?.id } ?? [])
+            let playing = teams.filter { $0.sport == followed.sport && ids.contains($0.teamID) }
             guard let fixture = fixture(from: event, sport: followed.sport, competition: followed.name,
-                                        leagueSlug: followed.league, teams: teams) else { return nil }
+                                        leagueSlug: followed.league, teams: playing) else { return nil }
             let onNow = fixture.date <= now && fixture.date > underWaySince && fixture.score?.phase != .finished
             return calendar.isDateInToday(fixture.date) || onNow ? fixture : nil
         }
