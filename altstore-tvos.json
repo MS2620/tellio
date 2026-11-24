@@ -18,6 +18,16 @@
       "screenshots": [],
       "versions": [
         {
+          "version": "0.1.95",
+          "buildVersion": "95",
+          "date": "2026-11-24T19:26:53Z",
+          "localizedDescription": "Tidier addon rows on a match's page- #11\n\nSome all-in-one addons list a match inside a channel name, with the teams in brackets. Tellio stripped the brackets, so those listings showed as channels, with long raw stream names and the addon's name twice. Generic sport channels also filled the \"may be showing it\" section.\n\nWhat changed\nMatches in brackets: a bracket that names two sides (\"Example TV 05 [Club A vs. Club B]\") is now read for the teams instead of being dropped. Brackets like \"[HD]\" are still ignored.\nRow titles: such a listing shows the match as the title and the channel underneath. Country prefixes (\"US| \", \"UK: \") and leading tags (\"(FHD) : \") are removed.\nLine under the title: emoji, tip text and the addon's repeated name are removed, and the quality stays. If the name gives nothing useful, the stream's title or description is used instead.\n\"Channels for this sport · may be showing it\": hidden when an addon already found the match or a channel showing it. Otherwise it leaves out news channels and lists ESPN's broadcasters first, up to 6.\nDuplicates combined: the same match or channel becomes one row, even from a single addon. The source chooser labels each source by quality and label, with \"Source N\" only as a last resort (translated).\nTests on GitHub: the matching checks are now in Tests/Matching with Scripts/test-matching.sh. A new Tests workflow runs them on Linux for pull requests that touch the matching code.\n\n---\nThird-party components in this build:\n- https://github.com/superuser404notfound/AetherEngine @ 7.67.1\n- https://github.com/superuser404notfound/FFmpegBuild @ 3.15.0\n- https://github.com/superuser404notfound/LibDovi @ 2.2.0\n- https://github.com/getsentry/sentry-cocoa @ 9.34.0\n- https://github.com/kishikawakatsumi/SMBClient @ 0.3.1",
+          "downloadURL": "https://github.com/MS2620/tellio/releases/download/build-95/Tellio.ipa",
+          "size": 17141822,
+          "sha256": "7b32db2eaa17c1785f757d0afe6180bd8fbbe3d211b5fe1e510ba56d3740c5a4",
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "0.1.93",
           "buildVersion": "93",
           "date": "2026-11-24T18:43:03Z",
