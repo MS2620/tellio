@@ -7458,6 +7458,40 @@
         }
       }
     },
+    "Cricket" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Críquet"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cricket"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cricket"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Críquete"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Krykiet"
+          }
+        }
+      }
+    },
     "Crime" : {
       "localizations" : {
         "es" : {
@@ -10042,6 +10076,74 @@
         }
       }
     },
+    "From the playlist" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desde la lista"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus der Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Depuis la playlist"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Da lista"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Z playlisty"
+          }
+        }
+      }
+    },
+    "From your addons" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En tus complementos"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In deinen Add-ons"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans vos add-ons"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nos seus add-ons"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "W twoich dodatkach"
+          }
+        }
+      }
+    },
     "From your IPTV provider" : {
       "localizations" : {
         "es" : {
@@ -10518,6 +10620,40 @@
         }
       }
     },
+    "Guide address" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de la guía"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guide-Adresse"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse du guide"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço do guia"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres programu TV"
+          }
+        }
+      }
+    },
     "Guide data is kept on the Apple TV between refreshes, so the guide opens quickly and your provider is asked less often." : {
       "localizations" : {
         "es" : {
@@ -10956,40 +11092,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Historyczny"
-          }
-        }
-      }
-    },
-    "Home" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inicio"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accueil"
-          }
-        },
-        "pt-PT" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Início"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Główna"
           }
         }
       }
@@ -11467,6 +11569,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zainstaluj ją przez atvloadly. Masz wersję %lld."
+          }
+        }
+      }
+    },
+    "International teams" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciones nacionales"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nationalteams"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Équipes nationales"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleções nacionais"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprezentacje"
           }
         }
       }
@@ -12997,6 +13133,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Szukanie napisów…"
+          }
+        }
+      }
+    },
+    "M3U playlist" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lista M3U"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "M3U-Playlist"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist M3U"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lista M3U"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlista M3U"
           }
         }
       }
@@ -15277,36 +15447,36 @@
         }
       }
     },
-    "No IPTV? Skip this. Films and series still work, and you can add it later in Settings › Connections." : {
+    "No IPTV, or an M3U playlist instead of a login? Skip this. Films and series still work, and you can add either later in Settings › Connections." : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Sin IPTV? Sáltate esto. Las películas y series siguen funcionando, y puedes añadirlo después en Ajustes › Conexiones."
+            "value" : "¿No tienes IPTV, o tienes una lista M3U en vez de un usuario? Sáltate este paso. Las películas y series siguen funcionando, y puedes añadir cualquiera de los dos más tarde en Ajustes › Conexiones."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kein IPTV? Überspring das. Filme und Serien funktionieren trotzdem, und du kannst es später unter Einstellungen › Verbindungen hinzufügen."
+            "value" : "Kein IPTV, oder eine M3U-Playlist statt Zugangsdaten? Überspringe diesen Schritt. Filme und Serien funktionieren trotzdem, und du kannst beides später unter Einstellungen › Verbindungen hinzufügen."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pas d’IPTV ? Passez cette étape. Les films et séries fonctionnent quand même, et vous pourrez l’ajouter plus tard dans Réglages › Connexions."
+            "value" : "Pas d’IPTV, ou une playlist M3U au lieu d’identifiants ? Passez cette étape. Les films et séries fonctionnent quand même, et vous pourrez ajouter l’un ou l’autre plus tard dans Réglages › Connexions."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem IPTV? Salte este passo. Os filmes e séries continuam a funcionar e pode adicioná-lo depois em Definições › Ligações."
+            "value" : "Sem IPTV, ou com uma lista M3U em vez de um acesso? Salte este passo. Os filmes e séries continuam a funcionar e pode adicionar qualquer um dos dois depois em Definições › Ligações."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nie masz IPTV? Pomiń ten krok. Filmy i seriale nadal działają, a IPTV możesz dodać później w Ustawienia › Połączenia."
+            "value" : "Nie masz IPTV albo masz playlistę M3U zamiast loginu? Pomiń ten krok. Filmy i seriale nadal działają, a jedno lub drugie możesz dodać później w Ustawienia › Połączenia."
           }
         }
       }
@@ -15919,6 +16089,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Normalna"
+          }
+        }
+      }
+    },
+    "Not found in your addons. Addons that list live games or channels are searched by the team names and the channels showing it." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No está en tus complementos. En los complementos que muestran partidos o canales en directo se busca por los nombres de los equipos y los canales que lo emiten."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht in deinen Add-ons gefunden. Add-ons, die Live-Spiele oder Sender anbieten, werden nach den Teamnamen und den übertragenden Sendern durchsucht."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introuvable dans vos add-ons. Les add-ons qui proposent des matchs ou des chaînes en direct sont parcourus avec le nom des équipes et des chaînes qui le diffusent."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não encontrado nos seus add-ons. Os add-ons que listam jogos ou canais em direto são pesquisados pelos nomes das equipas e pelos canais que o transmitem."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nie znaleziono w twoich dodatkach. Dodatki z meczami lub kanałami na żywo są przeszukiwane według nazw drużyn i kanałów, które to pokazują."
           }
         }
       }
@@ -17789,6 +17993,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nie udało się uruchomić odtwarzacza: %@"
+          }
+        }
+      }
+    },
+    "Playlist address" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dirección de la lista"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist-Adresse"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adresse de la playlist"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Endereço da lista"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adres playlisty"
           }
         }
       }
@@ -20127,6 +20365,40 @@
         }
       }
     },
+    "Result" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resultado"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ergebnis"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Résultat"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resultado"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wynik"
+          }
+        }
+      }
+    },
     "Results" : {
       "localizations" : {
         "es" : {
@@ -21063,6 +21335,40 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Searching your addons…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscando en tus complementos…"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Add-ons werden durchsucht …"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche dans vos add-ons…"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pesquisar nos seus add-ons…"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Przeszukiwanie dodatków…"
           }
         }
       }
@@ -24797,6 +25103,40 @@
         }
       }
     },
+    "That link isn't an M3U playlist." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ese enlace no es una lista M3U."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Link ist keine M3U-Playlist."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce lien n’est pas une playlist M3U."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Essa ligação não é uma lista M3U."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten link nie jest playlistą M3U."
+          }
+        }
+      }
+    },
     "The backdrop behind Live TV, Sports, Calendar, Search and Settings. Frosted, Ocean, Sunset, Forest, Aurora and Rosé are soft coloured glows; Dark is plain and easier on the eyes at night; Black is pure black, best on OLED TVs." : {
       "localizations" : {
         "es" : {
@@ -26668,36 +27008,70 @@
         }
       }
     },
-    "Type at least two letters to search football (every league), Formula 1, rugby, NFL, NBA, NHL and MLB." : {
+    "Type" : {
       "localizations" : {
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escribe al menos dos letras para buscar en fútbol (todas las ligas), Fórmula 1, rugby, NFL, NBA, NHL y MLB."
+            "value" : "Tipo"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gib mindestens zwei Buchstaben ein, um Fußball (alle Ligen), Formel 1, Rugby, NFL, NBA, NHL und MLB zu durchsuchen."
+            "value" : "Art"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saisissez au moins deux lettres pour chercher dans le football (toutes les ligues), la Formule 1, le rugby, la NFL, la NBA, la NHL et la MLB."
+            "value" : "Type"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escreva pelo menos duas letras para pesquisar futebol (todas as ligas), Fórmula 1, râguebi, NFL, NBA, NHL e MLB."
+            "value" : "Tipo"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wpisz co najmniej dwie litery, aby przeszukać piłkę nożną (wszystkie ligi), Formułę 1, rugby, NFL, NBA, NHL i MLB."
+            "value" : "Typ"
+          }
+        }
+      }
+    },
+    "Type at least two letters to search football (every league), Formula 1, rugby, cricket, NFL, NBA, NHL and MLB." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe al menos dos letras para buscar fútbol (todas las ligas), Fórmula 1, rugby, críquet, NFL, NBA, NHL y MLB."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib mindestens zwei Buchstaben ein, um Fußball (alle Ligen), Formel 1, Rugby, Cricket, NFL, NBA, NHL und MLB zu durchsuchen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez au moins deux lettres pour chercher dans le football (toutes les ligues), la Formule 1, le rugby, le cricket, la NFL, la NBA, la NHL et la MLB."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escreva pelo menos duas letras para pesquisar futebol (todas as ligas), Fórmula 1, râguebi, críquete, NFL, NBA, NHL e MLB."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpisz co najmniej dwie litery, aby przeszukać piłkę nożną (wszystkie ligi), Formułę 1, rugby, krykiet, NFL, NBA, NHL i MLB."
           }
         }
       }
@@ -27314,6 +27688,40 @@
         }
       }
     },
+    "Use the playlist link from your provider; it usually ends in .m3u or .m3u8. The guide comes from the link inside the playlist, so only enter one if your provider gives it separately. Live channels are read; films and series in the playlist are left out." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa el enlace de la lista de tu proveedor; suele terminar en .m3u o .m3u8. La guía se obtiene del enlace que hay dentro de la lista, así que introduce una solo si tu proveedor te la da aparte. Se leen los canales en directo; las películas y series de la lista se omiten."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwende den Playlist-Link deines Anbieters; er endet meist auf .m3u oder .m3u8. Der Guide kommt aus dem Link in der Playlist, gib also nur einen ein, wenn dein Anbieter ihn getrennt angibt. Gelesen werden Live-Sender; Filme und Serien in der Playlist werden ausgelassen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez le lien de playlist de votre fournisseur ; il se termine généralement par .m3u ou .m3u8. Le guide provient du lien inclus dans la playlist : n’en saisissez un que si votre fournisseur le donne à part. Les chaînes en direct sont lues ; les films et séries de la playlist sont ignorés."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use a ligação da lista do seu fornecedor; normalmente termina em .m3u ou .m3u8. O guia vem da ligação incluída na lista, por isso só introduza um se o fornecedor o der à parte. São lidos os canais em direto; os filmes e séries da lista ficam de fora."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Użyj linku do playlisty od dostawcy; zwykle kończy się na .m3u lub .m3u8. Program TV pochodzi z linku w playliście, więc wpisz go tylko wtedy, gdy dostawca podaje go osobno. Odczytywane są kanały na żywo; filmy i seriale z playlisty są pomijane."
+          }
+        }
+      }
+    },
     "Use the provider's name" : {
       "localizations" : {
         "es" : {
@@ -27786,6 +28194,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OGLĄDAJ"
+          }
+        }
+      }
+    },
+    "Watch" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansehen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regarder"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oglądaj"
           }
         }
       }

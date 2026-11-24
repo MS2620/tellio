@@ -406,6 +406,17 @@ struct FixtureDetailView: View {
     @State private var playback: PlaybackRequest?
     @State private var showingSportsChannels = false
     @ObservedObject private var liveScores = LiveScores.shared
+    @State private var addonHits: [AddonSportsHit] = []
+    @State private var addonSearching = false
+    /// Whether any addon lists something other than movies and series; otherwise the panel stays hidden.
+    @State private var addonsHaveLive = false
+
+    private var unlockedAddons: [AddonEntry] {
+        settings.addons.filter { !ParentalLock.shared.isLocked(addon: $0, prefs: settings.prefs) }
+    }
+
+    /// The guide search is done (or there's no IPTV account), so its channels can be looked for in addons too.
+    private var guideSearchDone: Bool { !settings.xtream.isConfigured || !searching }
 
     private var score: FixtureScore? { liveScores.score(for: fixture) }
     private var entry: ChannelSearchStore.Entry? { store.entries[fixture.id] }
@@ -477,6 +488,7 @@ struct FixtureDetailView: View {
                 }
 
                 watchPanel
+                addonPanel
                 if !matches.isEmpty && !searching {
                     SettingsNote([result.details, String(localized: "Hidden groups and channels are skipped.")]
                         .compactMap { $0 }.joined(separator: " "))
@@ -496,6 +508,7 @@ struct FixtureDetailView: View {
         .background(AppBackground())
         .task { search(force: false) }
         .task { await liveScores.run() }
+        .task(id: guideSearchDone) { await searchAddons() }
         .fullScreenCover(item: $playback) { request in
             PlayerView(request: request).ignoresSafeArea()
         }
@@ -565,6 +578,56 @@ struct FixtureDetailView: View {
         .background(RoundedRectangle(cornerRadius: 30, style: .continuous).fill(Theme.glass))
         .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(.white.opacity(0.1), lineWidth: 1))
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+    }
+
+    /// The game in the user's addons: listings of the game itself, or the channels showing it.
+    @ViewBuilder
+    private var addonPanel: some View {
+        if addonsHaveLive {
+            GlassPanel("From your addons") {
+                if addonHits.isEmpty {
+                    if addonSearching {
+                        ProgressView(String(localized: "Searching your addons…"))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 20)
+                    } else {
+                        note("Not found in your addons. Addons that list live games or channels are searched by the team names and the channels showing it.")
+                    }
+                }
+                ForEach(addonHits) { hit in
+                    Button {
+                        playAddon(hit)
+                    } label: {
+                        ListRowLabel(title: hit.title,
+                                     subtitle: [hit.stream.headline, hit.addonName].joined(separator: " · "),
+                                     icon: hit.kind == .game ? "sportscourt" : "tv",
+                                     trailing: String(localized: "Watch"))
+                    }
+                    .buttonStyle(PlainPressStyle())
+                }
+            }
+        }
+    }
+
+    private func searchAddons() async {
+        let addons = unlockedAddons
+        guard !addons.isEmpty else { return }
+        addonsHaveLive = await AddonSports.hasLiveCatalogues(addons)
+        guard addonsHaveLive else { return }
+        addonSearching = true
+        let done = guideSearchDone
+        let channelNames = done ? matches.map(\.channel.providerName) : []
+        let hits = await AddonSports.search(fixture, addons: addons, channelNames: channelNames)
+        guard !Task.isCancelled else { return }
+        addonHits = hits
+        // Until the guide search ends, more channels (and so more addon results) may follow.
+        addonSearching = !done
+    }
+
+    private func playAddon(_ hit: AddonSportsHit) {
+        guard let url = hit.stream.playableURL else { return }
+        playback = PlaybackRequest(url: url, title: displayTitle, sourceName: hit.addonName,
+                                   isLive: true, httpHeaders: hit.stream.requestHeaders)
     }
 
     private func note(_ text: LocalizedStringResource) -> some View {
@@ -789,7 +852,7 @@ private struct SportsChannelsSheet: View {
 
 /// Which sport the team search is narrowed to.
 private enum SportFilter: String, CaseIterable, Identifiable {
-    case all, football, f1, rugby, nfl, nba, nhl, mlb
+    case all, football, f1, rugby, cricket, nfl, nba, nhl, mlb
 
     var id: String { rawValue }
 
@@ -799,6 +862,7 @@ private enum SportFilter: String, CaseIterable, Identifiable {
         case .football: return String(localized: "Football")
         case .f1: return String(localized: "Formula 1")
         case .rugby: return String(localized: "Rugby")
+        case .cricket: return String(localized: "Cricket")
         case .nfl: return "NFL"
         case .nba: return "NBA"
         case .nhl: return "NHL"
@@ -811,7 +875,8 @@ private enum SportFilter: String, CaseIterable, Identifiable {
         case .all: return true
         case .football: return result.sport == "soccer"
         case .f1: return result.sport == "f1"
-        case .rugby: return result.sport == "rugby"
+        case .rugby: return result.sport == "rugby" || result.sport == SuperLeagueClient.sport
+        case .cricket: return result.sport == "cricket"
         case .nfl: return result.league == "nfl"
         case .nba: return result.league == "nba"
         case .nhl: return result.league == "nhl"
@@ -879,9 +944,16 @@ struct TeamsManagerView: View {
                         }
                         .buttonStyle(PlainPressStyle())
                         NavigationLink {
-                            LeagueListView(title: String(localized: "Rugby"), leagues: SportsCatalog.rugby)
+                            LeagueListView(title: String(localized: "Rugby"),
+                                           leagues: SportsCatalog.rugby + SportsCatalog.rugbyLeague)
                         } label: {
                             ListRowLabel(title: String(localized: "Rugby"), icon: "figure.rugby", trailingIcon: "chevron.right")
+                        }
+                        .buttonStyle(PlainPressStyle())
+                        NavigationLink {
+                            CricketLeaguesView()
+                        } label: {
+                            ListRowLabel(title: String(localized: "Cricket"), icon: "figure.cricket", trailingIcon: "chevron.right")
                         }
                         .buttonStyle(PlainPressStyle())
                         ForEach(SportsCatalog.us) { league in
@@ -921,7 +993,7 @@ struct TeamsManagerView: View {
 
                     GlassPanel("Results") {
                         if trimmed.count < 2 {
-                            hint("Type at least two letters to search football (every league), Formula 1, rugby, NFL, NBA, NHL and MLB.")
+                            hint("Type at least two letters to search football (every league), Formula 1, rugby, cricket, NFL, NBA, NHL and MLB.")
                         } else if searching && results.isEmpty {
                             ProgressView()
                                 .frame(maxWidth: .infinity)
@@ -1013,6 +1085,8 @@ struct TeamsManagerView: View {
             return leagueNames[result.league] ?? String(localized: "Football")
         case "rugby":
             return SportsCatalog.rugby.first { $0.slug == result.league }?.name ?? String(localized: "Rugby")
+        case "cricket":
+            return String(localized: "Cricket")
         default:
             return result.league.uppercased()
         }
@@ -1024,6 +1098,7 @@ struct TeamsManagerView: View {
         case "f1": return String(localized: "Formula 1")
         case "soccer": sport = String(localized: "Football")
         case "rugby": sport = String(localized: "Rugby")
+        case "cricket": sport = String(localized: "Cricket")
         case "football": sport = String(localized: "American football")
         case "basketball": sport = String(localized: "Basketball")
         case "hockey": sport = String(localized: "Ice hockey")
@@ -1099,6 +1174,22 @@ private struct FootballLeaguesView: View {
                 self.error = String(localized: "Couldn't load leagues: \(error.localizedDescription)")
             }
         }
+    }
+}
+
+/// International sides, then the competitions with cricket in the next 30 days.
+private struct CricketLeaguesView: View {
+    @State private var leagues: [SportLeague] = []
+
+    var body: some View {
+        Group {
+            if leagues.isEmpty {
+                ProgressView()
+            } else {
+                LeagueListView(title: String(localized: "Cricket"), leagues: leagues)
+            }
+        }
+        .task { leagues = await CricketClient().leagues() }
     }
 }
 

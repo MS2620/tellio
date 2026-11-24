@@ -68,7 +68,8 @@ struct StandingsClient {
     func tabs(for teams: [FavouriteTeam]) async -> [StandingTab] {
         var seen = Set<String>()
         var leagues: [FavouriteTeam] = []
-        for team in teams where !team.isF1 {
+        // Cricket and the Super League have no ESPN tables.
+        for team in teams where !team.isF1 && team.sport != "cricket" && team.sport != SuperLeagueClient.sport {
             let key = "\(team.sport)/\(team.league)"
             if !seen.contains(key) {
                 seen.insert(key)

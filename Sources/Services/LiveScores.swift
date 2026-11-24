@@ -24,8 +24,8 @@ final class LiveScores: ObservableObject {
 
     func track(_ fixtures: [Fixture]) {
         let cutoff = Date().addingTimeInterval(-Self.keepFor)
-        tracked = tracked.filter { $0.value.date > cutoff }
-        for fixture in fixtures where fixture.date > cutoff {
+        tracked = tracked.filter { $0.value.lastsUntil > cutoff }
+        for fixture in fixtures where fixture.lastsUntil > cutoff {
             tracked[fixture.id] = fixture
             // A fresher score from a refresh wins over the one the schedule had.
             if let score = fixture.score, scores[fixture.id] == nil { scores[fixture.id] = score }
@@ -45,7 +45,7 @@ final class LiveScores: ObservableObject {
 
     func recentFixtures(excluding ids: Set<String>) -> [Fixture] {
         let cutoff = Date().addingTimeInterval(-Self.keepFor)
-        return tracked.values.filter { !ids.contains($0.id) && $0.date > cutoff && $0.date <= Date() }
+        return tracked.values.filter { !ids.contains($0.id) && $0.lastsUntil > cutoff && $0.date <= Date() }
     }
 
     /// Games on now, soonest kick-off first (for the Top Shelf).
@@ -60,7 +60,7 @@ final class LiveScores: ObservableObject {
         let now = Date()
         let cutoff = now.addingTimeInterval(-Self.keepFor)
         return tracked.values.filter { fixture in
-            !fixture.isRace && fixture.date <= now.addingTimeInterval(60) && fixture.date > cutoff
+            !fixture.isRace && fixture.date <= now.addingTimeInterval(60) && fixture.lastsUntil > cutoff
                 && score(for: fixture)?.phase != .finished
         }
     }
