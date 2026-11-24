@@ -1008,6 +1008,11 @@ struct SportsSettingsView: View {
                 SettingsLinkRow("My teams", icon: "star", value: "\(settings.prefs.favouriteTeams.count)") {
                     TeamsManagerView()
                 }
+                if !settings.prefs.favouriteCompetitions.isEmpty {
+                    SettingsLinkRow("Competitions", icon: "trophy", value: "\(settings.prefs.favouriteCompetitions.count)") {
+                        TeamsManagerView()
+                    }
+                }
                 SettingsToggleRow("Remind me about my teams' matches", icon: "bell", isOn: $settings.prefs.remindTeamMatches)
             }
             SettingsNote("Fixtures cover every competition a team plays in, not just the league you picked it from. Match reminders go off as set in Live TV & Guide › Remind me.")

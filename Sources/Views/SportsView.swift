@@ -6,9 +6,14 @@ struct SportsView: View {
     @EnvironmentObject var settings: AppSettings
     @State private var fixtures: [Fixture] = []
     @State private var loading = false
+    /// Today's games in each followed competition that has some.
+    @State private var competitionGames: [(competition: FavouriteCompetition, fixtures: [Fixture])] = []
+    @State private var loadingCompetitions = false
     @ObservedObject private var liveScores = LiveScores.shared
 
     private var teams: [FavouriteTeam] { settings.prefs.favouriteTeams }
+    private var competitions: [FavouriteCompetition] { settings.prefs.favouriteCompetitions }
+    private var competitionsKey: String { competitions.map(\.id).joined(separator: ",") }
     private var days: Int { settings.prefs.sportsDaysAhead }
 
     private var loadKey: String {
@@ -67,6 +72,26 @@ struct SportsView: View {
                         }
                     }
 
+                    // Today in your competitions: every game of the day in each followed
+                    // competition. Fixtures and tables stay your teams'.
+                    if !competitions.isEmpty && competitionGames.isEmpty {
+                        if loadingCompetitions {
+                            ProgressView().frame(maxWidth: .infinity)
+                        } else {
+                            message("No games today in your competitions.")
+                        }
+                    }
+                    ForEach(competitionGames, id: \.competition.id) { entry in
+                        row("\(entry.competition.name) · \(entry.fixtures.count) today") {
+                            ForEach(entry.fixtures) { fixture in
+                                NavigationLink(value: fixture) {
+                                    FixtureTile(fixture: fixture, width: 480)
+                                }
+                                .buttonStyle(PlainPressStyle())
+                            }
+                        }
+                    }
+
                     if !later.isEmpty {
                         row("Next \(days) days") {
                             ForEach(later) { fixture in
@@ -105,6 +130,7 @@ struct SportsView: View {
             }
             .background(AppBackground())
             .task(id: loadKey) { await load() }
+            .task(id: competitionsKey) { await loadCompetitions() }
             .task { await liveScores.run() }
             .navigationDestination(for: Fixture.self) { fixture in
                 FixtureDetailView(fixture: fixture)
@@ -144,6 +170,16 @@ struct SportsView: View {
         loading = true
         fixtures = await SportsLoader.upcoming(teams: teams, days: days)
         loading = false
+    }
+
+    private func loadCompetitions() async {
+        guard !competitions.isEmpty else {
+            competitionGames = []
+            return
+        }
+        loadingCompetitions = true
+        competitionGames = await SportsLoader.today(in: competitions, teams: teams)
+        loadingCompetitions = false
     }
 }
 
@@ -978,6 +1014,21 @@ struct TeamsManagerView: View {
                         }
                     }
 
+                    if !settings.prefs.favouriteCompetitions.isEmpty {
+                        GlassPanel("Competitions · \(settings.prefs.favouriteCompetitions.count)") {
+                            ForEach(settings.prefs.favouriteCompetitions) { competition in
+                                Button {
+                                    settings.prefs.favouriteCompetitions.removeAll { $0.id == competition.id }
+                                } label: {
+                                    ListRowLabel(title: competition.name,
+                                                 subtitle: String(localized: "Games today in Sports · select to stop following"),
+                                                 icon: "trophy")
+                                }
+                                .buttonStyle(PlainPressStyle())
+                            }
+                        }
+                    }
+
                     GlassPanel("Browse by league") {
                         NavigationLink {
                             FootballLeaguesView()
@@ -1245,10 +1296,21 @@ private struct LeagueListView: View {
     let title: String
     let leagues: [SportLeague]
 
+    @EnvironmentObject var settings: AppSettings
+
     var body: some View {
         List(leagues) { league in
-            NavigationLink(league.name) {
+            NavigationLink {
                 TeamPickerView(league: league)
+            } label: {
+                HStack {
+                    Text(league.name)
+                    Spacer()
+                    if settings.prefs.favouriteCompetitions.contains(where: { $0.id == league.id }) {
+                        Image(systemName: "star.fill")
+                            .accessibilityLabel(Text("Following competition"))
+                    }
+                }
             }
         }
         .navigationTitle(title)
@@ -1262,8 +1324,28 @@ private struct TeamPickerView: View {
     @State private var loading = true
     @State private var error: String?
 
+    private var followsCompetition: Bool {
+        settings.prefs.favouriteCompetitions.contains { $0.id == league.id }
+    }
+
     var body: some View {
         List {
+            if FavouriteCompetition.canFollow(league) {
+                Section {
+                    Button {
+                        if followsCompetition {
+                            settings.prefs.favouriteCompetitions.removeAll { $0.id == league.id }
+                        } else {
+                            settings.prefs.favouriteCompetitions.append(FavouriteCompetition(league))
+                        }
+                    } label: {
+                        Label(followsCompetition ? String(localized: "Following competition") : String(localized: "Follow competition"),
+                              systemImage: followsCompetition ? "star.fill" : "star")
+                    }
+                } footer: {
+                    Text("Shows its games today in Sports, without following every team.")
+                }
+            }
             if loading {
                 ProgressView()
             } else if let error {
